@@ -1,0 +1,107 @@
+package com.justreading.onePanda.testReptile;
+
+import com.justreading.onePanda.common.URL;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.*;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author LYJ
+ * @Description
+ * @date 2020 年 03 月 03 日 15:28
+ */
+@SpringBootTest
+public class TestYiZhanShi {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    /**
+     * 测试登录一站式,这个还没搞完
+     */
+//    @Test
+//    public void testYZSLogin(){
+//        String studentLoginYzsUrl = URL.STUDENT_LOGIN_YZS.getUrl();
+//        String url = studentLoginYzsUrl + "?service=http://my.just.edu.cn%2F&username=172210409223&password=01681X&_eventId=submit&loginType=1&execution=c04f26b9-2501-48ec-b2fb-461a547c63d2_ZXlKaGJHY2lPaUpJVXpVeE1pSjkuVkhGNlVYcFBOVFJRV1dObVEwZFVUMDl5U2xwT01ESTNNMDFuZERWYWJrMHlLMUZ0YURabmFVVkRSVTF0YlhaSkx5czJhbXRDY21sWVYyRlZaalpNVGt4a05URlRlRFZLVWxCYVMwOVlRMFV2ZUcxTlVUUjRkSEpOYnpkS00yZDZjelF6TW05RGJGRnJabEJPVW5Ca2RFeDZiazV5TmpCTFpXdEtNR3hLSzNWTFVYaFJTMmQwWWtvNVZrUkhXbXBVVFdWTU0xaElkWEF5ZDNsTkszVjFVelZMV0hCeFRGSmpVMDl2UVRGcmFtaHFiakJNUTJkNU5uUmpTRUV6ZVRkMFYxbHdRWEEzU3pBeFdEUjBSRkpYVm5GMGFHRkZZMk0yUmtrNFluaHNhalZ5YVdKSVUwNVRhMFZGTlc1bFRHbE1SaXMxZFZSSmFqaGxhMFowUnl0TVZ6VlFibFpOTm14aVFsRjVjVWhvTUUxTWRuQXJURkI1YzAwMmNWQmtSVWhLVlRNcmNrSkpLMk5tYkV0b1pVOXBRMnBuVlVOMlMybExjV1k1UVRCQllXOVlaRmhYUWxGR05rUmtaR1pGTTJGU1IxVlNNbTVLZFhKRFZubEZPRmg0YjBabU1Tc3JVVWx1TURobVVrUjZkbWR6TkZKVWFqQlBjSE55UjNsdVlrOTRRWGczVm05U1NITnhVMFl6Y21Jd1RqTTBTRW8xV0ZSQmFIVmxZMnN5YmxObFVDdHFWbTlrVlROUmNtaG5Uamx6ZEhodWNUQTNUMWswVEM5VGRtUTFSbkY0U2pka1NqbExSVE0wWTBjMU4ydDFjUzl1ZUZKUGQyMHhiSGhHWWxWMmEyOTRUMGx5UkhWb1kzZDRabE56VjFKMWMzQndhazFqZFZadFNXY3pOM3BqZWxOM1ZVZFljazU0TW1sU1ZsbE1SMFJXY25aVmFIVXJjWFYxVTNnM1VEa3ZWblkxUjFsVGJteGlja2xhYm1aNVYwNWFXbVZoTUdwcVozRlJlU3QxUmt4d1VUUmtNM0IzWVdkME5HRnVkMk50SzFsSVJFOVFjMEpRY1RCdWQycExiSE5TWkdWelZXZHdkRzQwY0RoRWNtOVZLM2hITjFac1dGZHZTVzB2UTA4clZVTkxaRE5vWTBKNllVMVdSMGR0YUZCcVRDOWxXRUZwTUU5cGEzbFhRVVZuWldkWlJGTjViRVI2ZWpoV05IWnZNV0ozUmpKT2FuQkJaRGhJTUdoVlRIVnNVRGtyV0c4NFN5czFXSEZKV1RWdWIzQk1TVFJrWm5aSWJrbElSVGxvUkZwSFoxUXJPR3R6U25kRlVFbHdWMGxEUkZwSmJIZEJha1pWU1Zsek9HaHJjMHROYWtsNVJsRkNNazVDU25sek4wdEpaa2xFUldWeGVsVk9XWFJUTWt0TFFUVndNMnN2VVUwNFpXRkJTVlZFWTJGRlJHWTFkbW8wUnpWaGRUUm1NVzlVVWxCR05WZEVUV05EY1dWbUswdGpTa1JKUm5ZM05FUjVVVTVLU0RsQ1RGTjFObHB5Y0ROb1V6WmplVGRFVlhkTVF6SlRXWFEwVG5kaFN6bERORFpyVkdkR1ZFeHdOa2hxVG5ocFZVRXpjblJZU1hCdWQxVnFSV2RYZUU5UlJFeHVkamxYUlZoaFNtVTJNMVk0YlhCNFRtZDNTMVEwZVV0TFYxaFBjMUZpVW0xbVJGRXdTa05PVFRWeGQwb3daRlV6YTJ0cmVHMUlNRkp5UkhBNWRIZE5XVGhJVTNGTllsWjNRMmxHZDJ0WE5qRlBRa2RpSzNJdk1HVjZSVU5CTWxaVGJGRXJOVVJIVG1WbmNESkdVbTFGVG5CclRHdEtNSGwwV1VKeFNWTjJXR2RvYkZkUmIwSlViemhYTjB4WWRrVTFMMnBKWm1Odk9FTklXamh5Wm5WUlRqSnBUVEJXYjFOUVEwTmxiV0ZLVUdSb1VXeE9OSGwyZUdaMVlrTkNWVEpaVHpOb1NERXlkRlZOV2l0VU1VZEhNMVp3Y0dRemQwZHFOVGRyVlVsNU9TdHpUR2RpWjJGVmVXcDRibk4wTDNrMGVHNXhjWEZyTlVkNlIxRm9aMnczUWtGc2NWUk1WSFY2YW5KT09FcEhibEp6WXl0aFVtbEVWeTl5TkdzelYyWnFZVWc1ZDJOU1R6WnpXVWx6VkdobVZrVXhNWFE0YjJWcFNHRldabmh0TURGeVVWbHRjRmR2VTNFeE5qQmhObFp6TW5SSFFUUmpXV2xQVFRsSGJHbFVPVkJIVGtaQ1RFYzRaV0ZPZVRCalIzYzNaVVJLYkdOVVUwZHJZVUpRYVM4dmVtUTRTVWh0UVRsaE1XZFFjR0o2TmpCdmVHeEhUMFpSZFN0UVJXWmthMFpzUjFReGJFbHRWakJVYTI5eFZUbFRWR1JFTjJaS2VrOUtZbE15V0RFek9FcFFNRGhIUlhONlJGcEZlbFpDTUZWRWNYazBhRmMyWTBKamRXRlZaVmxpVG01TFpGZHZLMGxEZHpCdVQydElaR0ZxTW5OdFdWbENkbmxLVmxaSVVsaDVjVWw0U0U1NGNrdzVTVlEwTkdndlVEVk9OMGRrWVdWUldteHNja2RJTUc1NFdGaHJaMk5MYVhBNU9XaHRhSFozZVVobk56VjNjbWxMWm1ObmJWWk5iM1IxUVVKcE9XVlZUVkE1SzBSVGJXWlJPWE5aUVVJd1NVdE5UVnBaU3pGemNIQmhlRkZGYldsT1RubEtXbWQ0UVZkbWVHWlpUWFJOV25sNUsxQjBSREZ3YzA4eWVsVkNLM00xZUdkSkszTjBXV2cyYlVkbFVEbFpOMEp0VDFabWN5OW9XRUZ1WTNGMmJtOHJSV1JJT1VNeVZUVmxNMk5JWVc1TVduTkljV0psV0ZKNmMzQTRRblJGWWtKTFJXTmhVR3RZTm1OaldUVjRXbloxV21OM2MxaHVPVTF4YUV0bVFsTk1iMHQwYlVWMmFVcFpPWFpKTUZOVU9ERXZSWHBLU2pCRGEwNHJXazU1VDNWM1ExQlJTRWN2U2tadVIzQXhWWGhuT0dkUVR6ZFBUMWsyU2pGTlRXdEtjemR4ZFhBNWRIWXpNV1ZhYm5OaVQzUlVUbGhHTUZVNGFIZ3lZVXRUZEZKRllqVnJMMVZ1ZDJkRVlsUkdaaTlSVFhSM2QyWnpRV05sUmxZd2NVVldaMDR6YWxCelRtdGhhRWR1VVhnd00yRTVZMUJWV1VaallqSnRTM1ZFWVdGTGEzcHpja0l2TWxaaWRETnhObVZIYVN0SFNUSmxjWEJXVkhSelFrMHZhR2Q1WlU5eGQxRlNNWFZEYm5kWFJHeHphVzkzYlhwTlFUbHBZa3hZS3k4clZrRjJZMWszVFdKcFIycE1SV1JPVW5GalJXRjZaUzlvZVRWbldXazBVVlpzUld3NU1tRjJibXA1UjJsNlVIZHVjM05vT1VvclpsSnhkMjFyYW1sUFRIaHNTblpsTkhSSk1XSnRUblE0YkN0TmQwaHJXakp4SzFOVmRFeG1aVGhNYUdGcGVteDRibE5UVVdSMFZUSjJaVTlHV2tsSVptWmtka3hOYm5vNE1GUnNjbEJUY1V0U05FaFVkR05TTDFGUU5FSTRRV3hJYTJsTmJWWTBWMjExZUROc2QzZHZhMnczZVhoYVozaDRiVFl6YTAxWmFsUXJkbVF6WkhBMWJscG5aWEpLYkVsdFpsRkJWMFkwUVZWYWRsWkVVRTlXYVRNM01XaFVNek5xVVhSdGVHSlROV1pDTDB3NWRucFNNM0Y1THpaTGVXRnhVaXRNZVVWalFVWlJUMFUwWVVKeU9GaGhiR1ZxUkU1eVJGZGxWMmhMUzBJMlZGSktXWFpETW1aeUswZzRZMkZDTTNoYVFubHlSbHBKSzIwd2JISjRNQzl5Y0RkTVRYUjVXa1ZZZEZWdlZrNVZZMVYzTDNrMGNtb3plazlOZGtVemRWbEpValF2VjNsUFRYQjBWVXRFZWxVM1oydzVRek5YZW5aYU5WRk1RVmRpUjNWWWIwVlNZMU5TTjIxUlJDc3dObGhMYlVWQ1EwOTBZbHBqVmxSdFJDOXBVakF2YkZGVE1XeDNWRkl3VmpRelV6SkxTaloyUVdSWmNYcFZNR04wYlRaVU4zbFVWV3h1ZEVweFVUVTBSVGtyWVhRMFlsUktNWEkyUzNsd1IzQnpWVGhaY0ZkU2VUTjNaMkl3YUhGdlZreGhWalozYlZnMmJrbEZUVlpVUldOUldHWm5hVlJYZHpONFExaEhka2xTVGxGeVZrSTBTWGQwT0VoTlNuSmhSMjB5YVdabVdWVnZORU5VVFdoaU0yNUhaSFJJWTJOcGNqZzFTakJqVUVsRFZWTkhlWHBpYnpseldIZEhSR04xVEdoYVNHSnJVVFJHVlRWbWJDOVdZelE0UWtscVdtUk5WRnBSTm1velJWTjRLMVJ1WkZCNGJrdHNXSGRHUWpWdmMxTm9NVmhYTjFNMGJuSlNRMDF4Y21vd1lYcEhUMnBwUTJsRlJXbFhZM2hTT1VFMWFUTjBUbE5JZUhOemFFOXVUVmxZSzNSNGNYUnZOR3B2Vm5FM2JUTnpNbkpTV0c5elJIbzNNVGhNY201NE5qbExUWGwzUkZsVlRWaHdibHBYSzA1b2MwVkxTRkJIVTJkbk1EUXdVSEYzTkd4SGNIQlRja1ppWkRKak9Dc3lXRkJZWWk4MlNXRkZiRFJzT0hWa1RVRlJjV3BKWmtGWFJubDBSa1poSzBSWmJFNVFUemRaT1dSV2NVMU5aUzlaVjJKd1EwcHVRVVpvTlRkQ1lXY3ZhMDh5TkV4S1JHNU5WemhrYVdabVZHOWpNbFkzYVhCQldEZFNkbEUxTDFFNFpWcERkak5vVUVOWE0wbFpZamM0YzJzMlFYZDRRV2Q1TmxSRVdXSldTa2wyVW5kdmNXNHJjMHRGY2xkU1YzcExjbFoxWTB0emMyRlROVzVqYkhWd1dHeHpSSGREZDFsc1UxaGxjelpWY0ZodlJsZE9WblppV21OMGRUVmpXVXBDV1hadFNXdHpQUS4tVDF5OVFVdlM3R1ppVXktSklVZEpjQUFERkd6b09qRGh2RjNjSDBUTTNhbGdISHZoWWRxelFZX1hFWWM4cGdXSUZSZ2E3OU9LMUN6bWxsWDIxUVFSdw==";
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.add("Content-Type", MediaType.APPLICATION_FORM_URLENCODED.toString());
+//        MultiValueMap<String,String> body = new HttpHeaders();
+//        body.add("username","172210409223");
+//        body.add("password","01681X");
+//        body.add("_eventId","submit");
+//        body.add("loginType","1");
+//        body.add("execution","c04f26b9-2501-48ec-b2fb-461a547c63d2_ZXlKaGJHY2lPaUpJVXpVeE1pSjkuVkhGNlVYcFBOVFJRV1dObVEwZFVUMDl5U2xwT01ESTNNMDFuZERWYWJrMHlLMUZ0YURabmFVVkRSVTF0YlhaSkx5czJhbXRDY21sWVYyRlZaalpNVGt4a05URlRlRFZLVWxCYVMwOVlRMFV2ZUcxTlVUUjRkSEpOYnpkS00yZDZjelF6TW05RGJGRnJabEJPVW5Ca2RFeDZiazV5TmpCTFpXdEtNR3hLSzNWTFVYaFJTMmQwWWtvNVZrUkhXbXBVVFdWTU0xaElkWEF5ZDNsTkszVjFVelZMV0hCeFRGSmpVMDl2UVRGcmFtaHFiakJNUTJkNU5uUmpTRUV6ZVRkMFYxbHdRWEEzU3pBeFdEUjBSRkpYVm5GMGFHRkZZMk0yUmtrNFluaHNhalZ5YVdKSVUwNVRhMFZGTlc1bFRHbE1SaXMxZFZSSmFqaGxhMFowUnl0TVZ6VlFibFpOTm14aVFsRjVjVWhvTUUxTWRuQXJURkI1YzAwMmNWQmtSVWhLVlRNcmNrSkpLMk5tYkV0b1pVOXBRMnBuVlVOMlMybExjV1k1UVRCQllXOVlaRmhYUWxGR05rUmtaR1pGTTJGU1IxVlNNbTVLZFhKRFZubEZPRmg0YjBabU1Tc3JVVWx1TURobVVrUjZkbWR6TkZKVWFqQlBjSE55UjNsdVlrOTRRWGczVm05U1NITnhVMFl6Y21Jd1RqTTBTRW8xV0ZSQmFIVmxZMnN5YmxObFVDdHFWbTlrVlROUmNtaG5Uamx6ZEhodWNUQTNUMWswVEM5VGRtUTFSbkY0U2pka1NqbExSVE0wWTBjMU4ydDFjUzl1ZUZKUGQyMHhiSGhHWWxWMmEyOTRUMGx5UkhWb1kzZDRabE56VjFKMWMzQndhazFqZFZadFNXY3pOM3BqZWxOM1ZVZFljazU0TW1sU1ZsbE1SMFJXY25aVmFIVXJjWFYxVTNnM1VEa3ZWblkxUjFsVGJteGlja2xhYm1aNVYwNWFXbVZoTUdwcVozRlJlU3QxUmt4d1VUUmtNM0IzWVdkME5HRnVkMk50SzFsSVJFOVFjMEpRY1RCdWQycExiSE5TWkdWelZXZHdkRzQwY0RoRWNtOVZLM2hITjFac1dGZHZTVzB2UTA4clZVTkxaRE5vWTBKNllVMVdSMGR0YUZCcVRDOWxXRUZwTUU5cGEzbFhRVVZuWldkWlJGTjViRVI2ZWpoV05IWnZNV0ozUmpKT2FuQkJaRGhJTUdoVlRIVnNVRGtyV0c4NFN5czFXSEZKV1RWdWIzQk1TVFJrWm5aSWJrbElSVGxvUkZwSFoxUXJPR3R6U25kRlVFbHdWMGxEUkZwSmJIZEJha1pWU1Zsek9HaHJjMHROYWtsNVJsRkNNazVDU25sek4wdEpaa2xFUldWeGVsVk9XWFJUTWt0TFFUVndNMnN2VVUwNFpXRkJTVlZFWTJGRlJHWTFkbW8wUnpWaGRUUm1NVzlVVWxCR05WZEVUV05EY1dWbUswdGpTa1JKUm5ZM05FUjVVVTVLU0RsQ1RGTjFObHB5Y0ROb1V6WmplVGRFVlhkTVF6SlRXWFEwVG5kaFN6bERORFpyVkdkR1ZFeHdOa2hxVG5ocFZVRXpjblJZU1hCdWQxVnFSV2RYZUU5UlJFeHVkamxYUlZoaFNtVTJNMVk0YlhCNFRtZDNTMVEwZVV0TFYxaFBjMUZpVW0xbVJGRXdTa05PVFRWeGQwb3daRlV6YTJ0cmVHMUlNRkp5UkhBNWRIZE5XVGhJVTNGTllsWjNRMmxHZDJ0WE5qRlBRa2RpSzNJdk1HVjZSVU5CTWxaVGJGRXJOVVJIVG1WbmNESkdVbTFGVG5CclRHdEtNSGwwV1VKeFNWTjJXR2RvYkZkUmIwSlViemhYTjB4WWRrVTFMMnBKWm1Odk9FTklXamh5Wm5WUlRqSnBUVEJXYjFOUVEwTmxiV0ZLVUdSb1VXeE9OSGwyZUdaMVlrTkNWVEpaVHpOb1NERXlkRlZOV2l0VU1VZEhNMVp3Y0dRemQwZHFOVGRyVlVsNU9TdHpUR2RpWjJGVmVXcDRibk4wTDNrMGVHNXhjWEZyTlVkNlIxRm9aMnczUWtGc2NWUk1WSFY2YW5KT09FcEhibEp6WXl0aFVtbEVWeTl5TkdzelYyWnFZVWc1ZDJOU1R6WnpXVWx6VkdobVZrVXhNWFE0YjJWcFNHRldabmh0TURGeVVWbHRjRmR2VTNFeE5qQmhObFp6TW5SSFFUUmpXV2xQVFRsSGJHbFVPVkJIVGtaQ1RFYzRaV0ZPZVRCalIzYzNaVVJLYkdOVVUwZHJZVUpRYVM4dmVtUTRTVWh0UVRsaE1XZFFjR0o2TmpCdmVHeEhUMFpSZFN0UVJXWmthMFpzUjFReGJFbHRWakJVYTI5eFZUbFRWR1JFTjJaS2VrOUtZbE15V0RFek9FcFFNRGhIUlhONlJGcEZlbFpDTUZWRWNYazBhRmMyWTBKamRXRlZaVmxpVG01TFpGZHZLMGxEZHpCdVQydElaR0ZxTW5OdFdWbENkbmxLVmxaSVVsaDVjVWw0U0U1NGNrdzVTVlEwTkdndlVEVk9OMGRrWVdWUldteHNja2RJTUc1NFdGaHJaMk5MYVhBNU9XaHRhSFozZVVobk56VjNjbWxMWm1ObmJWWk5iM1IxUVVKcE9XVlZUVkE1SzBSVGJXWlJPWE5aUVVJd1NVdE5UVnBaU3pGemNIQmhlRkZGYldsT1RubEtXbWQ0UVZkbWVHWlpUWFJOV25sNUsxQjBSREZ3YzA4eWVsVkNLM00xZUdkSkszTjBXV2cyYlVkbFVEbFpOMEp0VDFabWN5OW9XRUZ1WTNGMmJtOHJSV1JJT1VNeVZUVmxNMk5JWVc1TVduTkljV0psV0ZKNmMzQTRRblJGWWtKTFJXTmhVR3RZTm1OaldUVjRXbloxV21OM2MxaHVPVTF4YUV0bVFsTk1iMHQwYlVWMmFVcFpPWFpKTUZOVU9ERXZSWHBLU2pCRGEwNHJXazU1VDNWM1ExQlJTRWN2U2tadVIzQXhWWGhuT0dkUVR6ZFBUMWsyU2pGTlRXdEtjemR4ZFhBNWRIWXpNV1ZhYm5OaVQzUlVUbGhHTUZVNGFIZ3lZVXRUZEZKRllqVnJMMVZ1ZDJkRVlsUkdaaTlSVFhSM2QyWnpRV05sUmxZd2NVVldaMDR6YWxCelRtdGhhRWR1VVhnd00yRTVZMUJWV1VaallqSnRTM1ZFWVdGTGEzcHpja0l2TWxaaWRETnhObVZIYVN0SFNUSmxjWEJXVkhSelFrMHZhR2Q1WlU5eGQxRlNNWFZEYm5kWFJHeHphVzkzYlhwTlFUbHBZa3hZS3k4clZrRjJZMWszVFdKcFIycE1SV1JPVW5GalJXRjZaUzlvZVRWbldXazBVVlpzUld3NU1tRjJibXA1UjJsNlVIZHVjM05vT1VvclpsSnhkMjFyYW1sUFRIaHNTblpsTkhSSk1XSnRUblE0YkN0TmQwaHJXakp4SzFOVmRFeG1aVGhNYUdGcGVteDRibE5UVVdSMFZUSjJaVTlHV2tsSVptWmtka3hOYm5vNE1GUnNjbEJUY1V0U05FaFVkR05TTDFGUU5FSTRRV3hJYTJsTmJWWTBWMjExZUROc2QzZHZhMnczZVhoYVozaDRiVFl6YTAxWmFsUXJkbVF6WkhBMWJscG5aWEpLYkVsdFpsRkJWMFkwUVZWYWRsWkVVRTlXYVRNM01XaFVNek5xVVhSdGVHSlROV1pDTDB3NWRucFNNM0Y1THpaTGVXRnhVaXRNZVVWalFVWlJUMFUwWVVKeU9GaGhiR1ZxUkU1eVJGZGxWMmhMUzBJMlZGSktXWFpETW1aeUswZzRZMkZDTTNoYVFubHlSbHBKSzIwd2JISjRNQzl5Y0RkTVRYUjVXa1ZZZEZWdlZrNVZZMVYzTDNrMGNtb3plazlOZGtVemRWbEpValF2VjNsUFRYQjBWVXRFZWxVM1oydzVRek5YZW5aYU5WRk1RVmRpUjNWWWIwVlNZMU5TTjIxUlJDc3dObGhMYlVWQ1EwOTBZbHBqVmxSdFJDOXBVakF2YkZGVE1XeDNWRkl3VmpRelV6SkxTaloyUVdSWmNYcFZNR04wYlRaVU4zbFVWV3h1ZEVweFVUVTBSVGtyWVhRMFlsUktNWEkyUzNsd1IzQnpWVGhaY0ZkU2VUTjNaMkl3YUhGdlZreGhWalozYlZnMmJrbEZUVlpVUldOUldHWm5hVlJYZHpONFExaEhka2xTVGxGeVZrSTBTWGQwT0VoTlNuSmhSMjB5YVdabVdWVnZORU5VVFdoaU0yNUhaSFJJWTJOcGNqZzFTakJqVUVsRFZWTkhlWHBpYnpseldIZEhSR04xVEdoYVNHSnJVVFJHVlRWbWJDOVdZelE0UWtscVdtUk5WRnBSTm1velJWTjRLMVJ1WkZCNGJrdHNXSGRHUWpWdmMxTm9NVmhYTjFNMGJuSlNRMDF4Y21vd1lYcEhUMnBwUTJsRlJXbFhZM2hTT1VFMWFUTjBUbE5JZUhOemFFOXVUVmxZSzNSNGNYUnZOR3B2Vm5FM2JUTnpNbkpTV0c5elJIbzNNVGhNY201NE5qbExUWGwzUkZsVlRWaHdibHBYSzA1b2MwVkxTRkJIVTJkbk1EUXdVSEYzTkd4SGNIQlRja1ppWkRKak9Dc3lXRkJZWWk4MlNXRkZiRFJzT0hWa1RVRlJjV3BKWmtGWFJubDBSa1poSzBSWmJFNVFUemRaT1dSV2NVMU5aUzlaVjJKd1EwcHVRVVpvTlRkQ1lXY3ZhMDh5TkV4S1JHNU5WemhrYVdabVZHOWpNbFkzYVhCQldEZFNkbEUxTDFFNFpWcERkak5vVUVOWE0wbFpZamM0YzJzMlFYZDRRV2Q1TmxSRVdXSldTa2wyVW5kdmNXNHJjMHRGY2xkU1YzcExjbFoxWTB0emMyRlROVzVqYkhWd1dHeHpSSGREZDFsc1UxaGxjelpWY0ZodlJsZE9WblppV21OMGRUVmpXVXBDV1hadFNXdHpQUS4tVDF5OVFVdlM3R1ppVXktSklVZEpjQUFERkd6b09qRGh2RjNjSDBUTTNhbGdISHZoWWRxelFZX1hFWWM4cGdXSUZSZ2E3OU9LMUN6bWxsWDIxUVFSdw==");
+//        HttpEntity httpEntity = new HttpEntity(body,headers);
+//        ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, httpEntity, String.class);
+//        if(!ObjectUtils.isEmpty(responseEntity.getHeaders().get("location"))){
+//            HttpHeaders headers1 = responseEntity.getHeaders();
+//            String location = headers1.get("location").toString();
+//            String url2 = location.substring(1, location.length() - 1);
+//            List<String> setCookieList = headers1.get("Set-Cookie");
+//            StringBuffer sessionId = new StringBuffer();
+//            StringBuffer iPlanetDirectoryPro = new StringBuffer();
+//            StringBuffer CASTGC = new StringBuffer();
+//            StringBuffer sudycas = new StringBuffer();
+//
+////            //解析sessionId
+////            String jsession1 = setCookieList.get(0).split(";")[0];
+////            sessionId.append(jsession1.substring(11,jsession1.length()));
+////
+////            //解析iPlanetDirectoryPro
+////            String  ip = setCookieList.get(2).split(";")[0];
+////            iPlanetDirectoryPro.append(ip.substring(21,ip.length()));
+////
+////            //解析CASTGC
+////            String ca = setCookieList.get(3);
+////            String caStr = ca.substring(ca.indexOf("="), ca.indexOf(";"));
+////            CASTGC.append(caStr.substring(1,caStr.length() - 1));
+////
+//            //解析sudycas
+//            String sd =  setCookieList.get(4);
+//            String sdStr = sd.substring(sd.indexOf("="),sd.indexOf(";"));
+//            sudycas.append(sdStr.substring(1,sdStr.length()));
+//
+//            sessionId.append(setCookieList.get(0).substring(0,setCookieList.get(0).indexOf(";")));
+//            iPlanetDirectoryPro.append(setCookieList.get(2).substring(0,setCookieList.get(2).indexOf(";")));
+//            CASTGC.append(setCookieList.get(3).substring(0,setCookieList.get(3).indexOf(";")));
+////            sudycas.append(setCookieList.get(4).substring(0,setCookieList.get(4).indexOf(";")));
+//
+//            HttpHeaders httpHeaders = new HttpHeaders();
+//            httpHeaders.add("Cookie",sessionId.toString() + ";" + iPlanetDirectoryPro.toString() + ";" +CASTGC.toString() + ";" + "route="+ sudycas + ";HttpOnly; sudyLoginToken=expired;language=");
+//            HttpEntity httpEntity1 = new HttpEntity(httpHeaders);
+//            ResponseEntity<String> responseEntity1 = restTemplate.exchange(url2, HttpMethod.GET, httpEntity1, String.class);
+//            System.out.println(responseEntity1.getHeaders().toString());
+//            Document $2 = Jsoup.parse(responseEntity1.getBody());
+//        }else{
+//
+//        }
+//        Document $ = Jsoup.parse(responseEntity.getBody());
+//    }
+
+    /**
+     * 测试
+     */
+    @Test
+    public void testFee(){
+
+    }
+
+    /**
+     * testWeekSchedule
+     */
+    @Test
+    public void tesWeekSchedule(){
+
+    }
+}
