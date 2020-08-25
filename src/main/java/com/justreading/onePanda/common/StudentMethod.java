@@ -43,7 +43,6 @@ public class StudentMethod {
         String url = URL.STUDENT_LOGIN.getUrl() +"?"+ "USERNAME=" + user.getUsername() +"&PASSWORD="+ user.getPassword();
         StringBuffer finalCookie = new StringBuffer();
 
-        RestTemplate restTemplate1 = new RestTemplate();
 
         //设置请求头
         HttpHeaders headers = new HttpHeaders();
@@ -52,7 +51,7 @@ public class StudentMethod {
         HttpHeaders responseHeader = null;
         ResponseEntity responseEntity = null;
         try{
-            responseEntity = restTemplate1.exchange(url, HttpMethod.POST ,entity, String.class);
+            responseEntity = restTemplate.exchange(url, HttpMethod.POST ,entity, String.class);
             responseHeader = responseEntity.getHeaders();
             if(responseHeader.get("Location") != null ){
                 if(ObjectUtils.isEmpty(responseHeader.get("Set-Cookie"))){
@@ -70,23 +69,23 @@ public class StudentMethod {
                 }
             }
         }catch (ResourceAccessException e){   //出现资源错误的时候进行重试登录以免登录不成功
-            responseEntity = restTemplate1.exchange(url, HttpMethod.POST ,entity, String.class);
-            responseHeader = responseEntity.getHeaders();
-            if(responseHeader.get("Location") != null ){
-                if(ObjectUtils.isEmpty(responseHeader.get("Set-Cookie"))){
-
-                }else{
-                    List<String> cookie1 = responseHeader.get("Set-Cookie");
-                    for (int i = 0; i < cookie1.size(); i++) {
-                        String s = cookie1.get(i);
-                        String[] split = s.split(";");
-                        finalCookie.append(split[0]);
-                        if(i == 0){
-                            finalCookie.append(";");
-                        }
-                    }
-                }
-            }
+//            responseEntity = restTemplate.exchange(url, HttpMethod.POST ,entity, String.class);
+//            responseHeader = responseEntity.getHeaders();
+//            if(responseHeader.get("Location") != null ){
+//                if(ObjectUtils.isEmpty(responseHeader.get("Set-Cookie"))){
+//
+//                }else{
+//                    List<String> cookie1 = responseHeader.get("Set-Cookie");
+//                    for (int i = 0; i < cookie1.size(); i++) {
+//                        String s = cookie1.get(i);
+//                        String[] split = s.split(";");
+//                        finalCookie.append(split[0]);
+//                        if(i == 0){
+//                            finalCookie.append(";");
+//                        }
+//                    }
+//                }
+//            }
         }finally {
             return finalCookie.toString();
         }
@@ -147,6 +146,7 @@ public class StudentMethod {
                 String score = elements.get(i).childNodes().get(9).childNodes().get(0).toString();
                 String credit = elements.get(i).childNodes().get(11).childNodes().get(0).toString();
                 String time = elements.get(i).childNodes().get(13).childNodes().get(0).toString();
+
                 StringBuffer examMethod = new StringBuffer();
 
                 //15为考试方式，有时候有些校公选为空，当为空的时候直接不进行添加，gradeKind为类型，用于判断是否计算绩点用的，任选课不计算绩点
@@ -175,6 +175,63 @@ public class StudentMethod {
         }
         return apiResponse;
     }
+
+    /**
+     *  获取学生的成绩信息，通过成绩申代的方法处进行爬虫
+     * @param cookie 学生cookie
+     * @param reptileGradeOption  成绩条件格式
+     * @return
+     */
+    public ApiResponse<List<ReptileGrade>> getStudentGradeByOther(String cookie, ReptileGradeOption reptileGradeOption) {
+        ApiResponse<List<ReptileGrade>> apiResponse = new ApiResponse<>();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Content-type", MediaType.APPLICATION_FORM_URLENCODED.toString());
+        httpHeaders.add("Cookie",cookie);
+        String url = URL.STUDENT_GRADE_EVALUATION.getUrl()+ "?kch=&xnxq01id=" + reptileGradeOption.getKksj();
+        HttpEntity<String> httpEntity = new HttpEntity<>(httpHeaders);
+        ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, httpEntity, String.class);
+        if(responseEntity.getStatusCodeValue() == 200){
+            Document $ = Jsoup.parse(responseEntity.getBody());
+            Elements elements = $.select("#dataList tr");
+            List<ReptileGrade> reptileGrades = new ArrayList<>();
+            for (int i = 1; i < elements.size() ; i++) {
+                String courseNumber = elements.get(i).childNodes().get(7).childNodes().get(0).toString();
+                String courseName = elements.get(i).childNodes().get(9).childNodes().get(0).toString();
+                String score = elements.get(i).childNodes().get(11).childNodes().get(0).toString();
+                String credit = elements.get(i).childNodes().get(13).childNodes().get(0).toString();
+                String time = "暂无";
+
+                StringBuffer examMethod = new StringBuffer();
+
+                //15为考试方式，有时候有些校公选为空，当为空的时候直接不进行添加，gradeKind为类型，用于判断是否计算绩点用的，任选课不计算绩点
+                if(elements.get(i).childNodes().get(15).childNodes().size() == 0){
+                    examMethod.append("暂无");
+                }else {
+                    examMethod.append(elements.get(i).childNodes().get(15).childNodes().get(0).toString());
+                }
+                String courseKind = elements.get(i).childNodes().get(17).childNodes().get(0).toString();
+                ReptileGrade reptileGrade = new ReptileGrade();
+                reptileGrade.setCourseNumber(courseNumber);
+                reptileGrade.setCourseName(courseName);
+                reptileGrade.setGrade(score);
+                reptileGrade.setCredit(credit);
+                reptileGrade.setTime(time);
+                reptileGrade.setExamMethod(examMethod.toString());
+                reptileGrade.setCourseKind(courseKind);
+                reptileGrades.add(reptileGrade);
+            }
+            apiResponse.setCode(200);
+            apiResponse.setMsg("查询成功");
+            apiResponse.setData(reptileGrades);
+        }else{
+            apiResponse.setCode(500);
+            apiResponse.setMsg("查询不到");
+        }
+        return apiResponse;
+    }
+
+
+
 
     /**
      * 获取学生的课表信息

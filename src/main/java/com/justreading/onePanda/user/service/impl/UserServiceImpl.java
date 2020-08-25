@@ -16,6 +16,7 @@ import com.justreading.onePanda.user.mapper.UserMapper;
 import com.justreading.onePanda.user.service.UserService;
 import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -49,6 +51,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private CourseService courseService;
+
+    @Autowired
+    private ThreadPoolExecutor threadPoolExecutor;
 
     /**
      *根据id判断 存在即更新，不存在即插入，并且返回一个带id的跟数据库中id相同的user，其他信息不一定相同
@@ -181,6 +186,7 @@ public class UserServiceImpl implements UserService {
                     //爬虫爬回来的课程里面是没有备注的，所以这里要在每个课程加上备注,优先入库再返回
                     List<ReptileCourse> reptileCourses = (List<ReptileCourse>)reptileResponse.getData().get("courses");
                     String bz = (String) reptileResponse.getData().get("bz");
+                    List<Course> returnCourse = new ArrayList<>();
                     for (int i = 0; i < reptileCourses.size() ; i++) {
                         ReptileCourse reptileCourse = reptileCourses.get(i);
                         Course course = new Course();
@@ -194,10 +200,12 @@ public class UserServiceImpl implements UserService {
                         course.setCourseTeacher(reptileCourse.getTeacher());
                         course.setCourseXq(Integer.parseInt(reptileCourse.getXq()));
                         course.setNote(bz);
-                        courseService.insertCourse(course);
+                        returnCourse.add(course);
                     }
-                    ApiResponse<List<Course>> dbResponse2 = courseService.findCourseByTermAndStudentUserName(CONSTANT.DEFAULT_TERM.getDefaultTerm(), studentUserInfo.getUsername());
-                    dataMap.put("courses", dbResponse2.getData());
+                    threadPoolExecutor.execute(() ->{  //开辟一个新的线程去插入
+                        ApiResponse<Integer> apiResponse1 = courseService.insertBatch(returnCourse);
+                    });
+                    dataMap.put("courses", returnCourse);
                     dataMap.put("nowWeek", WeekSchedule.NOW_WEEK);
                     dataMap.put("user",studentUserInfo);
                     dataMap.put("nowTerm",CONSTANT.DEFAULT_TERM.getDefaultTerm());

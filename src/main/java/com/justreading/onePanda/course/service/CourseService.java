@@ -21,6 +21,13 @@ public interface CourseService {
      */
     public ApiResponse<Course> insertCourse(Course course);
 
+    /**
+     * 批量插入成绩
+     * @param list
+     * @return
+     */
+    public ApiResponse<Integer> insertBatch(List<Course> list);
+
 
     /**
      * 通过id查询学生的课程

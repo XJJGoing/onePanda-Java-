@@ -12,6 +12,7 @@ import com.justreading.onePanda.course.mapper.CourseMapper;
 import com.justreading.onePanda.course.service.CourseService;
 import com.justreading.onePanda.user.entity.User;
 import com.justreading.onePanda.user.mapper.UserMapper;
+import io.swagger.models.auth.In;
 import org.hibernate.validator.constraints.UniqueElements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,16 @@ public class CourseServiceImpl implements CourseService {
          }
           apiResponse.setCode(200);
          return apiResponse;
+    }
+
+    @Override
+    public ApiResponse<Integer> insertBatch(List<Course> list) {
+        ApiResponse<Integer> apiResponse = new ApiResponse<>();
+        int i = courseMapper.insertCourseBatch(list);
+        apiResponse.setCode(200);
+        apiResponse.setMsg("批量插入成功");
+        apiResponse.setData(i);
+        return apiResponse;
     }
 
     @Override

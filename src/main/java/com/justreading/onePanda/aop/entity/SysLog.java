@@ -2,6 +2,9 @@ package com.justreading.onePanda.aop.entity;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -11,6 +14,9 @@ import java.io.Serializable;
  * @date 2020 年 03 月 04 日 13:33
  */
 @ApiModel("日志的实体类")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SysLog  implements Serializable {
     @ApiModelProperty(value = "创建的id",example = "0")
     private String id;
@@ -35,69 +41,4 @@ public class SysLog  implements Serializable {
 
     @ApiModelProperty(value = "创建时间")
     private  String createTime;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-
-    public String getOperation() {
-        return operation;
-    }
-
-    public String getResponseMessage() {
-        return responseMessage;
-    }
-
-    public void setResponseMessage(String responseMessage) {
-        this.responseMessage = responseMessage;
-    }
-
-    public void setOperation(String operation) {
-        this.operation = operation;
-    }
-
-    public String getMethod() {
-        return method;
-    }
-
-    public void setMethod(String method) {
-        this.method = method;
-    }
-
-    public String getParams() {
-        return params;
-    }
-
-    public void setParams(String params) {
-        this.params = params;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public String getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(String createTime) {
-        this.createTime = createTime;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
 }

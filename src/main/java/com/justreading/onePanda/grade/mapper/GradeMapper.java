@@ -3,6 +3,7 @@ package com.justreading.onePanda.grade.mapper;
 import com.justreading.onePanda.grade.entity.Grade;
 import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.*;
+import org.jsoup.Connection;
 
 import java.util.List;
 
@@ -12,12 +13,15 @@ import java.util.List;
  * @date 2020 年 02 月 16 日 15:59
  */
 @Mapper
-public interface GradeMapper {
+public interface GradeMapper  {
 
     @Options(useGeneratedKeys = true,keyProperty = "id")
     @Insert("insert into t_grade(grade_number,grade_name,grade_credit,grade_time,score,exam_method,student_username,term,grade_kind)" +
             "values(#{gradeNumber},#{gradeName},#{gradeCredit},#{gradeTime},#{score},#{examMethod},#{studentUsername},#{term},#{gradeKind})")
     public int insertGrade(Grade grade);
+
+    @InsertProvider(type = GradeProvider.class,method = "insertGradeBatch")
+    public int insertGradeBatch(@Param("list") List<Grade> list);
 
     /**
      * 根据学期和学号查询成绩
@@ -57,4 +61,14 @@ public interface GradeMapper {
      */
     @Select("select *from t_grade where  student_username = #{studentUsername}")
     public List<Grade> findAllGrade(String studentUsername);
+
+
+    /**
+     * 根据学生的学科号和学号进行成绩的查询
+     * @param gradeNumber
+     * @param username
+     * @return
+     */
+    @Select("select *from t_grade where  grade_number = #{gradeNumber} and username = #{username}")
+    public Grade findGradeByGradeNumberAndUsername(String gradeNumber,String username);
 }

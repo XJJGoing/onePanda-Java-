@@ -1,5 +1,6 @@
 package com.justreading.onePanda.grade.mapper;
 
+import com.justreading.onePanda.course.entity.Course;
 import com.justreading.onePanda.grade.entity.Grade;
 import com.justreading.onePanda.grade.entity.Grade;
 import org.apache.ibatis.annotations.Param;
@@ -61,5 +62,23 @@ public class GradeProvider {
 
     public String findGradeByMajorNumberAndTerm(@Param("majorNumber") String majorNumber,@Param("term")String term){
         return "select *from t_grade where student_username like '" + majorNumber + "%' and term =  '" + term + "';";
+    }
+
+    public String insertGradeBatch(List<Grade> list){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("insert into " +
+                "`t_grade`(grade_number,grade_name,grade_credit,grade_time,score,exam_method,student_username,term,grade_kind) values"
+        );
+        for (int i = 0; i < list.size() ; i++) {
+            Grade grade = list.get(i);
+            stringBuilder.append("(" +
+                    "'" + grade.getGradeNumber() +"'" + "," + "'" + grade.getGradeName() + "'" + ","  + grade.getGradeCredit() + "," +
+                    "'" + grade.getGradeTime() + "'" + "," + "'" + grade.getScore() + "'" + "," + "'" + grade.getExamMethod() + "'" + "," + "'" + grade.getStudentUsername() + "'" +"," +
+                    "'" + grade.getTerm() + "'" + "," + "'" + grade.getGradeKind() + "')");
+            if(i != list.size() - 1){
+                stringBuilder.append(",");
+            }
+        }
+        return stringBuilder.toString();
     }
 }

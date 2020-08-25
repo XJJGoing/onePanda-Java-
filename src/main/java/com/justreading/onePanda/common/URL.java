@@ -12,7 +12,8 @@ public enum  URL {
     STUDENT_INFO("http://jwgl.just.edu.cn:8080/jsxsd/grxx/xsxx?Ves632DSdyV=NEW_XSD_XJCJ"),
     STUDENT_LOGOUT("http://jwgl.just.edu.cn:8080/jsxsd/xk/LoginToXk?method=exit&tktime=1583559882000"),
     STUDENT_PE("http://tyxy.just.edu.cn/index1.asp"),
-    STUDENT_LOGIN_YZS("https://cas.v.just.edu.cn:4443/cas/login");
+    STUDENT_LOGIN_YZS("https://cas.v.just.edu.cn:4443/cas/login"),
+    STUDENT_GRADE_EVALUATION("http://jwgl.just.edu.cn:8080/jsxsd/kscj/cjtd_add_left");
     private String url;
 
     URL(String url) {

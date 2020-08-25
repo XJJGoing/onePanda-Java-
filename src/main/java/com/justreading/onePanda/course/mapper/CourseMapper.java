@@ -23,6 +23,14 @@ public interface CourseMapper {
             "values(#{courseName},#{courseNumber},#{courseZc},#{courseJc},#{courseXq},#{courseTeacher},#{courseRoom},#{studentUsername},#{term},#{note})")
     public int insertCourse(Course course);
 
+    /**
+     * 批量插入list
+     * @param list
+     * @return
+     */
+    @InsertProvider(type = CourseProvider.class,method = "insertCourseBatch")
+    public int insertCourseBatch(@Param("list") List<Course> list);
+
 
     /**
      * 通过id查询学生的课程

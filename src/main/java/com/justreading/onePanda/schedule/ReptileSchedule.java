@@ -49,9 +49,9 @@ public class ReptileSchedule {
 
 
     /**
-     * 定期爬取成绩,并且对学号和密码进行去重处理
+     * 定期爬取成绩,并且对学号和密码进行去重处理,取消定时任务
      */
-    @Scheduled(cron = "0 0 23 0/1 * *")
+//    @Scheduled(cron = "0 0 23 0/1 * *")
     public void getGrade(){
         List<User> allUser = userService.findAllUserUsernameAndPassword();
         List<User> removeOverlapUsernameAndPassword = new ArrayList<>();

@@ -2,6 +2,7 @@ package com.justreading.onePanda.grade.service.impl;
 
 import com.justreading.onePanda.aop.annotation.MyLog;
 import com.justreading.onePanda.common.ApiResponse;
+import com.justreading.onePanda.common.CONSTANT;
 import com.justreading.onePanda.common.MyUtils;
 import com.justreading.onePanda.common.StudentMethod;
 import com.justreading.onePanda.common.bean.ReptileCourse;
@@ -21,6 +22,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author LYJ
@@ -28,7 +30,7 @@ import java.util.List;
  * @date 2020 年 02 月 16 日 16:25
  */
 @Service
-public class GradeServiceImpl implements GradeService {
+public class GradeServiceImpl implements GradeService{
 
     @Autowired
     private GradeMapper gradeMapper;
@@ -42,6 +44,9 @@ public class GradeServiceImpl implements GradeService {
 
     @Autowired
     private MyUtils myUtils;
+
+    @Autowired
+    private ThreadPoolExecutor executor;
 
     /**
      * 插入学生的grade
@@ -72,38 +77,60 @@ public class GradeServiceImpl implements GradeService {
     @Override
     public ApiResponse<List<Grade>> findGradeByTermAndStudentUserName(String term, String studentUsername) {
         ApiResponse<List<Grade>> apiResponse = new ApiResponse<>();
-        List<Grade> grades = gradeMapper.findGradeByTermAndStudentUserName(term, studentUsername);
-        if(!ObjectUtils.isEmpty(grades)){
-           apiResponse.setData(grades);
-        }else{
-            List<User> userByUsername = userMapper.findUserByUsername(studentUsername);
-            String cookie = studentMethod.studentLogin(userByUsername.get(0));
-            ReptileGradeOption reptileGradeOption = new ReptileGradeOption();
-            reptileGradeOption.setKksj(term);
-            ApiResponse<List<ReptileGrade>> reptileResponse = studentMethod.getStudentGrade(cookie, reptileGradeOption);
-
-            List<ReptileGrade> reptileGrades = reptileResponse.getData();
-            List<Grade> returnGradeList = new ArrayList<>();
-            for (int i = 0; i < reptileGrades.size() ; i++) {
-                ReptileGrade reptileGrade = reptileGrades.get(i);
-                Grade grade = new Grade();
-                grade.setStudentUsername(studentUsername);
-                grade.setTerm(term);
-                grade.setGradeNumber(reptileGrade.getCourseNumber());
-                grade.setGradeName(reptileGrade.getCourseName());
-                grade.setGradeTime(reptileGrade.getTime());
-                grade.setGradeCredit(Double.parseDouble(reptileGrade.getCredit()));
-                grade.setExamMethod(reptileGrade.getExamMethod());
-                grade.setScore(reptileGrade.getGrade());
-                grade.setGradeKind(reptileGrade.getCourseKind());
-                gradeMapper.insertGrade(grade);
-                returnGradeList.add(grade);
+        List<User> userByUsername = userMapper.findUserByUsername(studentUsername);
+        String cookie = studentMethod.studentLogin(userByUsername.get(0));
+        if(!ObjectUtils.isEmpty(cookie)){
+                ReptileGradeOption reptileGradeOption = new ReptileGradeOption();
+                reptileGradeOption.setKksj(term);
+                ApiResponse<List<ReptileGrade>> reptileResponse = null;
+                if(term.equals(CONSTANT.DEFAULT_TERM.getDefaultTerm())){  //通过成绩替换获取
+                   reptileResponse = studentMethod.getStudentGradeByOther(cookie, reptileGradeOption);
+                }else{  //正常获取
+                   reptileResponse = studentMethod.getStudentGrade(cookie, reptileGradeOption);
+                }
+                List<ReptileGrade> reptileGrades = reptileResponse.getData();
+                List<Grade> returnGradeList = new ArrayList<>();
+                for (int i = 0; i < reptileGrades.size() ; i++) {
+                    ReptileGrade reptileGrade = reptileGrades.get(i);
+                    Grade grade = new Grade();
+                    grade.setStudentUsername(studentUsername);
+                    grade.setTerm(term);
+                    grade.setGradeNumber(reptileGrade.getCourseNumber());
+                    grade.setGradeName(reptileGrade.getCourseName());
+                    grade.setGradeTime(reptileGrade.getTime());
+                    grade.setGradeCredit(Double.parseDouble(reptileGrade.getCredit()));
+                    grade.setExamMethod(reptileGrade.getExamMethod());
+                    grade.setScore(reptileGrade.getGrade());
+                    grade.setGradeKind(reptileGrade.getCourseKind());
+                    returnGradeList.add(grade);
+                }
+                if(returnGradeList.size() > 0){
+                    executor.execute(() ->{   //开启一个线程去访问,及时更新成绩(删除更新)
+                        List<Grade> dbGradeList = gradeMapper.findGradeByTermAndStudentUserName(term, studentUsername);
+                        if(dbGradeList.size() != returnGradeList.size() && returnGradeList.size() > 0 && dbGradeList.size() > 0){
+                            List<Integer> gradeIdList = new ArrayList<>();
+                            for(Grade grade : dbGradeList){
+                                gradeIdList.add(grade.getId());
+                            }
+                            gradeMapper.deleteGradeBatch(gradeIdList);
+                            gradeMapper.insertGradeBatch(returnGradeList);
+                        }
+                        if(dbGradeList.size() == 0){
+                           gradeMapper.insertGradeBatch(returnGradeList);
+                        }
+                    });
+                    apiResponse.setData(returnGradeList);
+                }else{
+                    List<Grade> dbGradeList = gradeMapper.findGradeByTermAndStudentUserName(term, studentUsername);
+                    apiResponse.setData(dbGradeList);
+                }
+            }else{
+                List<Grade> dbGradeList = gradeMapper.findGradeByTermAndStudentUserName(term, studentUsername);
+                apiResponse.setData(dbGradeList);
             }
 
-            //进行这个链接的退出登录
-            studentMethod.studentLogout(cookie);
-            apiResponse.setData(returnGradeList);
-        }
+         //进行这个链接的退出登录
+        studentMethod.studentLogout(cookie);
         apiResponse.setCode(200);
         apiResponse.setMsg("查询成功");
         return  apiResponse;

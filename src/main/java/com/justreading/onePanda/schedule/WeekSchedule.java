@@ -1,6 +1,5 @@
 package com.justreading.onePanda.schedule;
 
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class WeekSchedule {
-    public static Integer NOW_WEEK = 13;
+    public static Integer NOW_WEEK = 20;
 
     public static Integer getNowWeek() {
         return NOW_WEEK;

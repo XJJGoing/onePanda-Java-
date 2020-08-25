@@ -4,13 +4,16 @@ import com.github.pagehelper.PageInfo;
 import com.justreading.onePanda.aop.annotation.MyLog;
 import com.justreading.onePanda.common.ApiResponse;
 import com.justreading.onePanda.common.MyPageInfo;
+import com.justreading.onePanda.common.StudentMethod;
 import com.justreading.onePanda.user.entity.User;
 import com.justreading.onePanda.user.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.xmlbeans.impl.xb.xsdschema.Attribute;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +30,9 @@ import java.util.Map;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private StudentMethod studentMethod;
 
     /**
      * 授权登录
@@ -87,5 +93,26 @@ public class UserController {
     public ApiResponse<MyPageInfo<User>> findAllUser(@RequestParam(required = true,defaultValue = "1")String pageNum, @RequestParam(required = true,defaultValue = "5")String pageSize){
         ApiResponse<MyPageInfo<User>> allUser = userService.findAllUser(pageNum, pageSize);
         return  allUser;
+    }
+
+    /**
+     * 帮张同学写的接口,只有学生的学号和密码
+     * @param user
+     * @return
+     */
+    @ApiOperation("帮张同学写的接口")
+    @PostMapping("/studentLogin")
+    public ApiResponse<User> studentLogin(@RequestBody(required = true) User user){
+        String cookie = studentMethod.studentLogin(user);
+        ApiResponse<User> apiResponse = new ApiResponse<>();
+        if(!ObjectUtils.isEmpty(cookie)){
+            apiResponse.setMsg("登录成功");
+            apiResponse.setCode(200);
+            apiResponse.setData(user);
+        }else{
+            apiResponse.setMsg("登录失败");
+            apiResponse.setCode(400);
+        }
+        return apiResponse;
     }
 }

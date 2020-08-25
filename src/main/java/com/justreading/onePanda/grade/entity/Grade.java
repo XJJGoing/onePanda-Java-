@@ -144,4 +144,12 @@ public class Grade implements Serializable {
     public void setUpdateTime(String updateTime) {
         this.updateTime = updateTime;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof Grade)){
+            return false;
+        }
+        return (this.gradeNumber == ((Grade)obj).gradeNumber) && (this.studentUsername == ((Grade) obj).studentUsername);
+    }
 }

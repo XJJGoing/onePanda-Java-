@@ -3,6 +3,7 @@ package com.justreading.onePanda.course.mapper;
 import com.justreading.onePanda.course.entity.Course;
 import org.apache.ibatis.jdbc.SQL;
 
+import javax.security.auth.login.AccountException;
 import java.util.List;
 
 /**
@@ -58,5 +59,27 @@ public class CourseProvider {
             updateSqlList.append(sql.toString() + ";");
         }
         return  updateSqlList.toString();
+    }
+
+    /**
+     * @param list
+     * @return
+     */
+    public String insertCourseBatch(List<Course> list){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("insert into " +
+                "`t_course`(student_username,term,course_number,course_name,course_zc,course_jc,course_room,course_teacher,course_xq,note) values"
+        );
+        for (int i = 0; i < list.size() ; i++) {
+            Course course = list.get(i);
+            stringBuilder.append("(" +
+                    "'" + course.getStudentUsername() +"'" + "," + "'" + course.getTerm() + "'" + "," + "'" + course.getCourseNumber() + "'" + "," +
+                    "'" + course.getCourseName() + "'" + "," + "'" + course.getCourseZc() + "'" + "," + course.getCourseJc() + "," + "'" + course.getCourseRoom() + "'" +"," +
+                    "'" + course.getCourseTeacher() + "'" + "," + course.getCourseXq() + "," + "'" + course.getNote() + "'" + ")");
+            if(i != list.size() - 1){
+                stringBuilder.append(",");
+            }
+        }
+        return stringBuilder.toString();
     }
 }
