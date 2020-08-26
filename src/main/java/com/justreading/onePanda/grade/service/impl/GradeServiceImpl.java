@@ -11,7 +11,7 @@ import com.justreading.onePanda.common.bean.ReptileGradeOption;
 import com.justreading.onePanda.course.entity.Course;
 import com.justreading.onePanda.grade.entity.Grade;
 import com.justreading.onePanda.grade.entity.UserGrade;
-import com.justreading.onePanda.grade.mapper.GradeMapper;
+import com.justreading.onePanda.grade.mapper.*;
 import com.justreading.onePanda.grade.service.GradeService;
 import com.justreading.onePanda.user.entity.User;
 import com.justreading.onePanda.user.mapper.UserMapper;
