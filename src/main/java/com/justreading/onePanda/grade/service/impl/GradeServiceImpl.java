@@ -22,7 +22,9 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 /**
  * @author LYJ
@@ -130,7 +132,9 @@ public class GradeServiceImpl implements GradeService{
             }
 
          //进行这个链接的退出登录
-        studentMethod.studentLogout(cookie);
+        if(!ObjectUtils.isEmpty(cookie)){
+            studentMethod.studentLogout(cookie);
+        }
         apiResponse.setCode(200);
         apiResponse.setMsg("查询成功");
         return  apiResponse;
@@ -176,28 +180,27 @@ public class GradeServiceImpl implements GradeService{
         List<Grade> grades = gradeMapper.findGradeByMajorNumberAndTerm(majorNumber,term);
         List<UserGrade> userGradeList = new ArrayList<>();
         Integer id = 1;
-        for (int i = 0; i < grades.size()  ; i++) {
-            boolean flag = false;
-            for(int j = 0; j < userGradeList.size(); j++){
-                if(userGradeList.get(j).getUsername().equals(grades.get(i).getStudentUsername())){
-                    List<Grade> beforeGradeList = userGradeList.get(j).getGrades();
-                    beforeGradeList.add(grades.get(i));
-                    userGradeList.get(j).setGrades(beforeGradeList);
-                    flag = true;
-                }
+        List<String> usernameList = grades.stream().map(value -> {
+            return value.getStudentUsername();
+        }).distinct().collect(Collectors.toList());
+        for (String username : usernameList){
+            UserGrade userGrade = new UserGrade();
+            List<User> students = userMapper.findUserByUsername(username);
+            if(!ObjectUtils.isEmpty(students)){
+                userGrade.setUsername(students.get(0).getUsername());
+                userGrade.setTrueName(students.get(0).getTrueName());
+            }else{
+                continue;
             }
-            if(!flag){
-                UserGrade userGrade = new UserGrade();
-                userGrade.setId(id++);
-                userGrade.setUsername(grades.get(i).getStudentUsername());
-                List<User> students = userMapper.findUserByUsername(grades.get(i).getStudentUsername());
-                String studentTrueName = students.get(0).getTrueName();
-                userGrade.setTrueName(studentTrueName);
-                List<Grade> beforeGrade = userGrade.getGrades();
-                beforeGrade.add(grades.get(i));
-                userGrade.setGrades(beforeGrade);
-                userGradeList.add(userGrade);
+            userGrade.setId(id++);
+            List<Grade> gradeList = new ArrayList<>();
+            for (Grade grade : grades){
+               if(grade.getStudentUsername().equals(username)){
+                   gradeList.add(grade);
+               }
             }
+            userGrade.setGrades(gradeList);
+            userGradeList.add(userGrade);
         }
         List<UserGrade> returnUserGrades = myUtils.calculateGradePoint(userGradeList);
         apiResponse.setCode(200);
@@ -205,7 +208,4 @@ public class GradeServiceImpl implements GradeService{
         apiResponse.setData(returnUserGrades);
         return apiResponse;
     }
-
-
-
 }

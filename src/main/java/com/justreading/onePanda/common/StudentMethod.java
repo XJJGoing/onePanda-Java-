@@ -7,6 +7,7 @@ import com.justreading.onePanda.common.bean.ReptileGrade;
 import com.justreading.onePanda.common.bean.ReptileGradeOption;
 import com.justreading.onePanda.course.entity.Course;
 import com.justreading.onePanda.user.entity.User;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Node;
@@ -19,6 +20,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -27,6 +29,7 @@ import java.util.*;
  * @date 2020 年 02 月 15 日 13:14
  */
 @Component
+@Slf4j
 public class StudentMethod {
 
     @Autowired
@@ -86,6 +89,8 @@ public class StudentMethod {
 //                    }
 //                }
 //            }
+        }catch (Exception e){
+            log.info("找不到目标主机：：UnknownHostException" + e.getMessage());
         }finally {
             return finalCookie.toString();
         }

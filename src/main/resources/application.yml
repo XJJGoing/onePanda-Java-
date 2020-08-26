@@ -1,11 +1,11 @@
 #配置数据源druid
 spring:
   datasource:
-    username: root
-    password: root
+    username: xjj
+    password: 18178595973lyj
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:4306/onepanda?characterEncoding=utf8&serverTimezone=UTC&useUnicode=true&allowMultiQueries=true
+    url: jdbc:mysql://47.101.211.157:4306/onepanda?characterEncoding=utf8&serverTimezone=UTC&useUnicode=true&allowMultiQueries=true
     initialization-mode: always
 
     initialSize: 5
@@ -16,7 +16,7 @@ spring:
     minEvictableIdleTimeMillis: 300000
     validationQuery: SELECT 1 FROM DUAL
     testWhileIdle: true
-    testOnBorrow: false
+    testOnBorrow: true
     testOnReturn: false
     poolPreparedStatements: true
 
