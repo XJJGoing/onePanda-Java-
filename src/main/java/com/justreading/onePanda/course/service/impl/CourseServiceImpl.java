@@ -21,6 +21,7 @@ import org.springframework.util.ObjectUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author LYJ
@@ -38,6 +39,12 @@ public class CourseServiceImpl implements CourseService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private ThreadPoolExecutor threadPoolExecutor;
+
+    @Autowired
+    private CourseService courseService;
 
 
     @Override
@@ -57,10 +64,12 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public ApiResponse<Integer> insertBatch(List<Course> list) {
         ApiResponse<Integer> apiResponse = new ApiResponse<>();
-        int i = courseMapper.insertCourseBatch(list);
+        if(!ObjectUtils.isEmpty(list)){
+            int i = courseMapper.insertCourseBatch(list);
+            apiResponse.setData(i);
+            apiResponse.setMsg("批量插入成功");
+        }
         apiResponse.setCode(200);
-        apiResponse.setMsg("批量插入成功");
-        apiResponse.setData(i);
         return apiResponse;
     }
 
@@ -89,35 +98,86 @@ public class CourseServiceImpl implements CourseService {
                 apiResponse.setData(courses);
             }else{
                 List<User> userByUsername = userMapper.findUserByUsername(studentUserName);
-                String cookie = studentMethod.studentLogin(userByUsername.get(0));
-                ReptileCourseOption reptileCourseOption = new ReptileCourseOption();
-                reptileCourseOption.setXnxq01id(term);
-                ApiResponse<Map<String, Object>> reptileResponse = studentMethod.getStudentCourse(cookie, reptileCourseOption);
+                if(!ObjectUtils.isEmpty(userByUsername)){
+                    String cookie = studentMethod.studentLogin(userByUsername.get(0));
+                    ReptileCourseOption reptileCourseOption = new ReptileCourseOption();
+                    reptileCourseOption.setXnxq01id(term);
+                    ApiResponse<Map<String, Object>> reptileResponse = studentMethod.getStudentCourse(cookie, reptileCourseOption);
 
-                //爬虫爬回来的课程里面是没有备注的，所以这里要在每个课程加上备注,优先入库再返回
-                List<ReptileCourse> reptileCourses = (List<ReptileCourse>)reptileResponse.getData().get("courses");
-                String bz = (String) reptileResponse.getData().get("bz");
-                List<Course> returnCourseList = new ArrayList<>();
-                for (int i = 0; i < reptileCourses.size() ; i++) {
-                    ReptileCourse reptileCourse = reptileCourses.get(i);
-                    Course course = new Course();
-                    course.setStudentUsername(studentUserName);
-                    course.setTerm(term);
-                    course.setCourseNumber(reptileCourse.getNumber());
-                    course.setCourseName(reptileCourse.getName());
-                    course.setCourseZc(reptileCourse.getZc());
-                    course.setCourseJc(Integer.parseInt(reptileCourse.getJc()));
-                    course.setCourseRoom(reptileCourse.getRoom());
-                    course.setCourseTeacher(reptileCourse.getTeacher());
-                    course.setCourseXq(Integer.parseInt(reptileCourse.getXq()));
-                    course.setNote(bz);
-                    courseMapper.insertCourse(course);
-                    returnCourseList.add(course);
-                }
+                    //爬虫爬回来的课程里面是没有备注的，所以这里要在每个课程加上备注,优先入库再返回
+                    List<ReptileCourse> reptileCourses = (List<ReptileCourse>)reptileResponse.getData().get("courses");
+                    String bz = (String) reptileResponse.getData().get("bz");
+                    List<Course> returnCourse = new ArrayList<>();
+                    for (int i = 0; i < reptileCourses.size() ; i++) {
+                        ReptileCourse reptileCourse = reptileCourses.get(i);
+                        Course course = new Course();
+                        course.setStudentUsername(studentUserName);
+                        course.setTerm(term);
+                        course.setCourseNumber(reptileCourse.getNumber());
+                        course.setCourseName(reptileCourse.getName());
+                        course.setCourseZc(reptileCourse.getZc());
+                        course.setCourseJc(Integer.parseInt(reptileCourse.getJc()));
+                        course.setCourseRoom(reptileCourse.getRoom());
+                        course.setCourseTeacher(reptileCourse.getTeacher());
+                        course.setCourseXq(Integer.parseInt(reptileCourse.getXq()));
+                        course.setNote(bz);
+                        returnCourse.add(course);
+                    }
+                    threadPoolExecutor.execute(() ->{  //开辟一个新的线程去插入
+                        ApiResponse<Integer> apiResponse1 = courseService.insertBatch(returnCourse);
+                    });
 
-                //进行这个链接的退出登录
-                studentMethod.studentLogout(cookie);
-                apiResponse.setData(returnCourseList);
+                    //进行这个链接的退出登录
+                    studentMethod.studentLogout(cookie);
+                    apiResponse.setData(returnCourse);
+                 }
+            }
+            apiResponse.setMsg("查询成功");
+        }else{
+            apiResponse.setMsg("学期和用户名不能为空");
+        }
+        apiResponse.setCode(200);
+        return apiResponse;
+    }
+
+    @Override
+    public ApiResponse<List<Course>> findCourseByTermAndStudentUserName(String term, String studentUserName, String cookie) {
+        ApiResponse<List<Course>> apiResponse = new ApiResponse<>();
+        if(term != "" && studentUserName != ""){
+            List<Course> courses = courseMapper.findCourseByTermAndStudentUserName(term, studentUserName);
+            if(!ObjectUtils.isEmpty(courses)){
+                apiResponse.setData(courses);
+            }else{
+                    ReptileCourseOption reptileCourseOption = new ReptileCourseOption();
+                    reptileCourseOption.setXnxq01id(term);
+                    ApiResponse<Map<String, Object>> reptileResponse = studentMethod.getStudentCourse(cookie, reptileCourseOption);
+
+                    //爬虫爬回来的课程里面是没有备注的，所以这里要在每个课程加上备注,优先入库再返回
+                    List<ReptileCourse> reptileCourses = (List<ReptileCourse>)reptileResponse.getData().get("courses");
+                    String bz = (String) reptileResponse.getData().get("bz");
+                    List<Course> returnCourse = new ArrayList<>();
+                    for (int i = 0; i < reptileCourses.size() ; i++) {
+                        ReptileCourse reptileCourse = reptileCourses.get(i);
+                        Course course = new Course();
+                        course.setStudentUsername(studentUserName);
+                        course.setTerm(term);
+                        course.setCourseNumber(reptileCourse.getNumber());
+                        course.setCourseName(reptileCourse.getName());
+                        course.setCourseZc(reptileCourse.getZc());
+                        course.setCourseJc(Integer.parseInt(reptileCourse.getJc()));
+                        course.setCourseRoom(reptileCourse.getRoom());
+                        course.setCourseTeacher(reptileCourse.getTeacher());
+                        course.setCourseXq(Integer.parseInt(reptileCourse.getXq()));
+                        course.setNote(bz);
+                        returnCourse.add(course);
+                    }
+                    threadPoolExecutor.execute(() ->{  //开辟一个新的线程去插入
+                        ApiResponse<Integer> apiResponse1 = courseService.insertBatch(returnCourse);
+                    });
+
+                    //进行这个链接的退出登
+                     apiResponse.setData(returnCourse);
+                     studentMethod.studentLogout(cookie);
             }
             apiResponse.setMsg("查询成功");
         }else{

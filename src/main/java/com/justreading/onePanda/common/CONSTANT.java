@@ -6,7 +6,7 @@ package com.justreading.onePanda.common;
  * @date 2020 年 02 月 16 日 17:27
  */
 public enum  CONSTANT {
-    DEFAULT_TERM("2019-2020-2");
+    DEFAULT_TERM("2020-2021-1");
     private String defaultTerm;
 
     CONSTANT(String defaultTerm) {

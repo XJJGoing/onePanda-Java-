@@ -1,6 +1,7 @@
 package com.justreading.onePanda.course.mapper;
 
 import com.justreading.onePanda.course.entity.Course;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.jdbc.SQL;
 
 import javax.security.auth.login.AccountException;
@@ -65,7 +66,7 @@ public class CourseProvider {
      * @param list
      * @return
      */
-    public String insertCourseBatch(List<Course> list){
+    public String insertCourseBatch(@Param("list") List<Course> list){
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("insert into " +
                 "`t_course`(student_username,term,course_number,course_name,course_zc,course_jc,course_room,course_teacher,course_xq,note) values"

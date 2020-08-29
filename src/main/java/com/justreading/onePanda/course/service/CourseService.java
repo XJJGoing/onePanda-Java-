@@ -45,6 +45,16 @@ public interface CourseService {
      */
     public ApiResponse<List<Course>> findCourseByTermAndStudentUserName(String term, String studentUserName);
 
+    /**
+     * 通过学期和学生的学号查询学生的课表,提供给学生查询用的，仅限于登录接口用
+     * @param term 学期
+     * @param studentUserName 学号
+     * @param cookie 登录的cookie
+     * @return
+     */
+    public ApiResponse<List<Course>> findCourseByTermAndStudentUserName(String term, String studentUserName,String cookie);
+
+
 
     /**
      * 查询所有学生的课程,并且做分页

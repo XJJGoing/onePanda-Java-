@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.justreading.onePanda.course.mapper.CourseMapper">
+
+    <sql id="tb">
+        t_course
+    </sql>
+
+
+
+    <insert id="insertCourseBatch" parameterType="List" useGeneratedKeys="true" keyProperty="id">
+        insert  into  <include refid="tb"/>(student_username,term,course_number,course_name,course_zc,course_jc,course_room,course_teacher,course_xq,note)
+        values
+        <foreach collection="list" item="course" separator="," index="index">
+            (#{course.studentUsername},#{course.term},#{course.courseNumber},#{course.courseName},#{course.courseZc},#{course.courseJc},#{course.courseRoom},#{course.courseTeacher},#{course.courseXq},#{course.note})
+        </foreach>
+    </insert>
+
+    <delete id="deleteCourseBatch" parameterType="List">
+        delete  from <include refid="tb"/>
+        where
+        id in
+        <foreach collection="list" item="id" separator="," open="(" close=")" index="index">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="updateCourseBatch" parameterType="List" keyProperty="id" useGeneratedKeys="true">
+        <foreach collection="list" item="course"  index="index" open="" separator=";" close="">
+            update <include refid="tb"/>
+                <set>
+                    <if test="course.courseName != null">
+                       course_name = #{course.courseName},
+                    </if>
+                    <if test="course.courseNumber != null">
+                        course_number = #{course.courseNumber},
+                    </if>
+                    <if test="course.courseZc != null">
+                        course_zc = #{course.courseZc},
+                    </if>
+                    <if test="course.courseJc != null">
+                        course_jc = #{course.courseJc},
+                    </if>
+                    <if test="course.courseXq != null">
+                        course_xq = #{course.courseXq},
+                    </if>
+                    <if test="course.courseTeacher != null">
+                        course_teacher = #{course.courseTeacher},
+                    </if>
+                    <if test="course.courseRoom != null">
+                        course_room = #{course.courseRoom},
+                    </if>
+                    <if test="course.studentUsername != null">
+                        student_username = #{course.studentUsername},
+                    </if>
+                    <if test="course.term != null">
+                        term = #{course.term},
+                    </if>
+                    <if test="course.note != null">
+                        course_teacher = #{course.note}
+                    </if>
+                </set>
+             WHERE id = #{course.id}
+         </foreach>
+    </update>
+</mapper>

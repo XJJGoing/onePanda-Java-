@@ -28,7 +28,7 @@ public interface CourseMapper {
      * @param list
      * @return
      */
-    @InsertProvider(type = CourseProvider.class,method = "insertCourseBatch")
+//    @InsertProvider(type = CourseProvider.class,method = "insertCourseBatch")
     public int insertCourseBatch(@Param("list") List<Course> list);
 
 
@@ -62,13 +62,13 @@ public interface CourseMapper {
     /**
      * 批量删除课表
      */
-    @DeleteProvider(type = CourseProvider.class,method = "deleteCourseBatch")
-    public void deleteCourseBatch(List<Integer> list);
+//    @DeleteProvider(type = CourseProvider.class,method = "deleteCourseBatch")
+    public void deleteCourseBatch(@Param("list") List<Integer> list);
 
     /**
      * 批量更新课表 根据 studentName 和 term 去更新，更新这批数据
      * @param list  课表数据
      */
-    @UpdateProvider(type = CourseProvider.class,method = "updateCourseBatch")
+//    @UpdateProvider(type = CourseProvider.class,method = "updateCourseBatch")
     public void updateCourseBatch(@Param("list") List<Course> list);
 }
