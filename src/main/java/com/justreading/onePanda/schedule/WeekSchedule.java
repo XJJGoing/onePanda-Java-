@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class WeekSchedule {
-    public static Integer NOW_WEEK = 20;
+    public static Integer NOW_WEEK = 2;
 
     public static Integer getNowWeek() {
         return NOW_WEEK;
@@ -24,8 +24,6 @@ public class WeekSchedule {
     public void changeWeek(){
         if(NOW_WEEK < 20 ){
             NOW_WEEK += 1;
-        }else{
-
         }
     }
 }

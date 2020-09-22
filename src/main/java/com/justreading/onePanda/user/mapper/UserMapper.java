@@ -108,4 +108,13 @@ public interface UserMapper {
     @Select("select id,username,password,is_assistant,major_number,is_root,true_name from t_user " +
             "where username = #{username} and password = #{password} and is_assistant = 1 and origin = #{origin}")
     public User teacherLogin(String username,String password,Integer origin);
+
+    /**
+     * 通过查询t_user表进行验证登录
+     * @param username 学号
+     * @param password 密码
+     * @return
+     */
+    @Select("select *from t_user where username = #{username} and password = #{password}")
+    public List<User> findUserByUsernameAndPasswordToLogin(@Param("username") String username, @Param("password") String password);
 }

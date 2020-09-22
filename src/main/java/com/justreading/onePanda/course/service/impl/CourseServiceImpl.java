@@ -122,10 +122,15 @@ public class CourseServiceImpl implements CourseService {
                         course.setCourseXq(Integer.parseInt(reptileCourse.getXq()));
                         course.setNote(bz);
                         returnCourse.add(course);
+                        courseMapper.insertCourse(course);
                     }
-                    threadPoolExecutor.execute(() ->{  //开辟一个新的线程去插入
-                        ApiResponse<Integer> apiResponse1 = courseService.insertBatch(returnCourse);
-                    });
+
+                    //开启插入线程
+//                    threadPoolExecutor.execute(() -> {
+//                        for(Course course : returnCourse){
+//                            courseMapper.insertCourse(course);
+//                        }
+//                    });
 
                     //进行这个链接的退出登录
                     studentMethod.studentLogout(cookie);
@@ -170,10 +175,15 @@ public class CourseServiceImpl implements CourseService {
                         course.setCourseXq(Integer.parseInt(reptileCourse.getXq()));
                         course.setNote(bz);
                         returnCourse.add(course);
+                        courseMapper.insertCourse(course);
                     }
-                    threadPoolExecutor.execute(() ->{  //开辟一个新的线程去插入
-                        ApiResponse<Integer> apiResponse1 = courseService.insertBatch(returnCourse);
-                    });
+
+                    //开启插入线程
+//                     threadPoolExecutor.execute(() -> {
+//                         for(Course course : returnCourse){
+//                             courseMapper.insertCourse(course);
+//                         }
+//                     });
 
                     //进行这个链接的退出登
                      apiResponse.setData(returnCourse);

@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.justreading</groupId>
     <artifactId>spring-boot-projects-onepanda</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>2.1.1-SNAPSHOT</version>
     <name>spring-boot-projects-onepanda</name>
     <description>onepanda的项目依赖包</description>
 

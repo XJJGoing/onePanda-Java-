@@ -15,6 +15,7 @@ import com.justreading.onePanda.user.entity.User;
 import com.justreading.onePanda.user.mapper.UserMapper;
 import com.justreading.onePanda.user.service.UserService;
 import io.swagger.models.auth.In;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -158,71 +159,54 @@ public class UserServiceImpl implements UserService {
                 apiResponse.setMsg("教师登录成功");
             }
         }else{           //不为1 则学生进行登录
-            String cookie = studentMethod.studentLogin(user);
-            if(cookie.length() >0 && user.getCode().length() > 0){
-                ApiResponse<Map<String, Object>> studentTrueInfo = studentMethod.getStudentInfo(cookie);
-                user.setTrueName((String)studentTrueInfo.getData().get("trueName"));
-                user.setCollege((String)studentTrueInfo.getData().get("college"));
-                user.setStudentMajorName((String)studentTrueInfo.getData().get("studentMajorName"));
-
-
-                User afterDetailUser = toGetOpenIdAndInsert(user);
-                User studentUserInfo = userMapper.findUserByUserId(Integer.toString(afterDetailUser.getId()));
+            List<User> userByUsername = userMapper.findUserByUsernameAndPasswordToLogin(user.getUsername(),user.getPassword());
+            String cookie = "";
+            Map<String,Object> dataMap = new HashMap<>();
+            User returnUser = new User();
+            ApiResponse<List<Course>> dbResponse = new ApiResponse<>();
+            if(!ObjectUtils.isEmpty(userByUsername)){
 
                 //登录成功,进行课表的爬取,数据库不存在即去爬虫
-                ApiResponse<List<Course>> dbResponse= courseService.findCourseByTermAndStudentUserName(CONSTANT.DEFAULT_TERM.getDefaultTerm(), studentUserInfo.getUsername(),cookie);
-                Map<String,Object> dataMap = new HashMap<>();
+                user.setTrueName(userByUsername.get(0).getTrueName());
+                user.setCollege(userByUsername.get(0).getCollege());
+                user.setStudentMajorName(userByUsername.get(0).getStudentMajorName());
+                dbResponse = courseService.findCourseByTermAndStudentUserName(CONSTANT.DEFAULT_TERM.getDefaultTerm(), userByUsername.get(0).getUsername());
+                BeanUtils.copyProperties(userByUsername.get(0),returnUser);
+            }else{
+                 cookie = studentMethod.studentLogin(user);
+                 if(cookie.length() >0 && user.getCode().length() > 0){
+
+                     //登录成功,进行课表的爬取,数据库不存在即去爬虫
+                    ApiResponse<Map<String, Object>> studentTrueInfo = studentMethod.getStudentInfo(cookie);
+                    user.setTrueName((String)studentTrueInfo.getData().get("trueName"));
+                    user.setCollege((String)studentTrueInfo.getData().get("college"));
+                    user.setStudentMajorName((String)studentTrueInfo.getData().get("studentMajorName"));
+                    User afterDetailUser = toGetOpenIdAndInsert(user);
+                    User studentUserInfo = userMapper.findUserByUserId(Integer.toString(afterDetailUser.getId()));
+                    dbResponse = courseService.findCourseByTermAndStudentUserName(CONSTANT.DEFAULT_TERM.getDefaultTerm(), studentUserInfo.getUsername(),cookie);
+                    BeanUtils.copyProperties(studentUserInfo,returnUser);
+                }
+            }
+            if(ObjectUtils.isEmpty(returnUser.getId())){
+                apiResponse.setData(null);
+                apiResponse.setCode(200);
+                apiResponse.setMsg("学生登录失败");
+            }else{
                 List<Course> dbCourse = dbResponse.getData();
-                if(dbCourse.size() != 0){  //返回现在的周数和课表
+                if(!ObjectUtils.isEmpty(dbCourse)){  //返回现在的周数和课表
                     dataMap.put("courses",dbCourse);
-                    dataMap.put("nowWeek",WeekSchedule.NOW_WEEK);
-                    dataMap.put("user",studentUserInfo);
-                    dataMap.put("nowTerm",CONSTANT.DEFAULT_TERM.getDefaultTerm());
                 }else{
                     dbCourse = new ArrayList<>();
                     dataMap.put("courses",dbCourse);
-                    dataMap.put("nowWeek",WeekSchedule.NOW_WEEK);
-                    dataMap.put("user",studentUserInfo);
-                    dataMap.put("nowTerm",CONSTANT.DEFAULT_TERM.getDefaultTerm());
                 }
-//                else{
-//                    ReptileCourseOption reptileCourseOption = new ReptileCourseOption();
-//                    reptileCourseOption.setXnxq01id(CONSTANT.DEFAULT_TERM.getDefaultTerm());
-//                    ApiResponse<Map<String, Object>> reptileResponse = studentMethod.getStudentCourse(cookie, reptileCourseOption);
-//
-//                    //爬虫爬回来的课程里面是没有备注的，所以这里要在每个课程加上备注,优先入库再返回
-//                    List<ReptileCourse> reptileCourses = (List<ReptileCourse>)reptileResponse.getData().get("courses");
-//                    String bz = (String) reptileResponse.getData().get("bz");
-//                    List<Course> returnCourse = new ArrayList<>();
-//                    for (int i = 0; i < reptileCourses.size() ; i++) {
-//                        ReptileCourse reptileCourse = reptileCourses.get(i);
-//                        Course course = new Course();
-//                        course.setStudentUsername(user.getUsername());
-//                        course.setTerm(CONSTANT.DEFAULT_TERM.getDefaultTerm());
-//                        course.setCourseNumber(reptileCourse.getNumber());
-//                        course.setCourseName(reptileCourse.getName());
-//                        course.setCourseZc(reptileCourse.getZc());
-//                        course.setCourseJc(Integer.parseInt(reptileCourse.getJc()));
-//                        course.setCourseRoom(reptileCourse.getRoom());
-//                        course.setCourseTeacher(reptileCourse.getTeacher());
-//                        course.setCourseXq(Integer.parseInt(reptileCourse.getXq()));
-//                        course.setNote(bz);
-//                        returnCourse.add(course);
-//                    }
-//                    threadPoolExecutor.execute(() ->{  //开辟一个新的线程去插入
-//                        ApiResponse<Integer> apiResponse1 = courseService.insertBatch(returnCourse);
-//                    });
-//                    dataMap.put("courses", returnCourse);
-//                    dataMap.put("nowWeek", WeekSchedule.NOW_WEEK);
-//                    dataMap.put("user",studentUserInfo);
-//                    dataMap.put("nowTerm",CONSTANT.DEFAULT_TERM.getDefaultTerm());
-//                }
+                dataMap.put("nowWeek",WeekSchedule.NOW_WEEK);
+                dataMap.put("user",returnUser);
+                dataMap.put("nowTerm",CONSTANT.DEFAULT_TERM.getDefaultTerm());
+                apiResponse.setData(dataMap);
                 apiResponse.setCode(200);
                 apiResponse.setMsg("学生登录成功");
-                studentMethod.studentLogout(cookie);
-                apiResponse.setData(dataMap);
-            }
-        }
+             }
+          }
         return apiResponse;
     }
 

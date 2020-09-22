@@ -149,9 +149,14 @@ public class StudentMethod {
                 String courseNumber = elements.get(i).childNodes().get(5).childNodes().get(0).toString();
                 String courseName = elements.get(i).childNodes().get(7).childNodes().get(0).toString();
                 String score = elements.get(i).childNodes().get(9).childNodes().get(0).toString();
-                String credit = elements.get(i).childNodes().get(11).childNodes().get(0).toString();
-                String time = elements.get(i).childNodes().get(13).childNodes().get(0).toString();
-
+                String credit = "0";
+                String time = "0";
+                if(elements.get(i).childNodes().get(11).childNodes().size() != 0){
+                    credit = elements.get(i).childNodes().get(11).childNodes().get(0).toString();
+                }
+                if(elements.get(i).childNodes().get(13).childNodes().size() != 0){
+                    time = elements.get(i).childNodes().get(13).childNodes().get(0).toString();
+                }
                 StringBuffer examMethod = new StringBuffer();
 
                 //15为考试方式，有时候有些校公选为空，当为空的时候直接不进行添加，gradeKind为类型，用于判断是否计算绩点用的，任选课不计算绩点
@@ -160,7 +165,10 @@ public class StudentMethod {
                 }else {
                     examMethod.append(elements.get(i).childNodes().get(15).childNodes().get(0).toString());
                 }
-                String courseKind = elements.get(i).childNodes().get(17).childNodes().get(0).toString();
+                String courseKind = "转专业替代课程";
+                if(elements.get(i).childNodes().get(17).childNodes().size() != 0){
+                    courseKind = elements.get(i).childNodes().get(17).childNodes().get(0).toString();
+                }
                 ReptileGrade reptileGrade = new ReptileGrade();
                 reptileGrade.setCourseNumber(courseNumber);
                 reptileGrade.setCourseName(courseName);
@@ -300,39 +308,132 @@ public class StudentMethod {
 //                    判断是否有课程，即课程的div，普通课程长度10  体育课长度8,采用从前面＋下去的算法，有的多的就跳过2
                     List<Node> div = courseContent.get(0).childNodes();
                     Integer length = div.size();
-                    if(length > 1){
-                        Integer len = 0;
-                        while (length > 0){
+
+                    //分割线的索引列表
+                    List<Integer> separatorIndexList = new ArrayList<>();
+                    for (int k = 0; k < div.size() ; k++) {
+                         if(!div.get(k).hasAttr("childNodes") && div.get(k).toString().equals("---------------------")){
+                             separatorIndexList.add(k);
+                         }
+                    }
+                    Integer beginIndex = 0;
+                    if(!ObjectUtils.isEmpty(separatorIndexList)){   //拥有多门课
+                        for(Integer index : separatorIndexList){
+                            Integer len = index - beginIndex;
                             ReptileCourse reptileCourseObject = new ReptileCourse();
-                            reptileCourseObject.setNumber(div.get(len).toString().substring(1));
-                            String courseName = div.get(len + 2).toString();
-                            reptileCourseObject.setName(courseName);
-                            reptileCourseObject.setTeacher(div.get(len + 4).childNodes().get(0).toString());
-                            reptileCourseObject.setZc(div.get(len + 6).childNodes().get(0).toString());
-//                            System.out.println("获取的div" + div.size());
-                            Boolean  flag = false;
-                            if(courseName.equals("体育1") || courseName.equals("体育2") || courseName.equals("体育3")
-                                    || courseName.equals("体育4") || courseName.equals("三年级体育专项")
-                                   || (div.size() > len + 8 ? div.get(len + 8).toString().equals("---------------------"):false)
-
-                            )
-                            {   //这里加上是否有教室，因为有些不是体育课的也没教室,可能出现空指针
-
-                               len += 10;
-                            }else{
-                                if(div.size() > len + 8){
-                                    reptileCourseObject.setRoom(div.get(len + 8).childNodes().get(0).toString());
-                                }
-                                len += 12;
+                            if(len.equals(10)){
+                                reptileCourseObject.setNumber(div.get(beginIndex).toString().substring(1));
+                                reptileCourseObject.setName( div.get(beginIndex + 2).toString());
+                                reptileCourseObject.setTeacher(div.get(beginIndex + 4).childNodes().get(0).toString());
+                                reptileCourseObject.setZc(div.get(beginIndex + 6).childNodes().get(0).toString());
+                                reptileCourseObject.setRoom(div.get(beginIndex + 8).childNodes().get(0).toString());
+                            }else if(len.equals(6)){
+                                reptileCourseObject.setNumber(div.get(beginIndex).toString().substring(1));
+                                reptileCourseObject.setName( div.get(beginIndex + 2).toString());
+                                reptileCourseObject.setZc(div.get(beginIndex + 4).childNodes().get(0).toString());
+                            }else if(len.equals(8)){
+                                reptileCourseObject.setNumber(div.get(beginIndex).toString().substring(1));
+                                reptileCourseObject.setName( div.get(beginIndex + 2).toString());
+                                reptileCourseObject.setTeacher(div.get(beginIndex + 4).childNodes().get(0).toString());
+                                reptileCourseObject.setZc(div.get(beginIndex + 6).childNodes().get(0).toString());
                             }
-
-                            //设置节次,和属于哪一行的tr
                             reptileCourseObject.setJc(Integer.toString(j));
                             reptileCourseObject.setXq(Integer.toString( i + 1));
                             coursesList.add(reptileCourseObject);
-                            length -= 12;
+                            beginIndex = index + 2;
+                        }
+                        Integer resCourseLength = div.size() - beginIndex;
+                        ReptileCourse reptileCourseObject = new ReptileCourse();
+                        if(resCourseLength >= 9 ){
+                            reptileCourseObject.setNumber(div.get(beginIndex).toString().substring(1));
+                            reptileCourseObject.setName( div.get(beginIndex + 2).toString());
+                            reptileCourseObject.setTeacher(div.get(beginIndex + 4).childNodes().get(0).toString());
+                            reptileCourseObject.setZc(div.get(beginIndex + 6).childNodes().get(0).toString());
+                            reptileCourseObject.setRoom(div.get(beginIndex + 8).childNodes().get(0).toString());
+                        }else if(resCourseLength > 6 && resCourseLength <= 8){
+                            reptileCourseObject.setNumber(div.get(beginIndex).toString().substring(1));
+                            reptileCourseObject.setName( div.get(beginIndex + 2).toString());
+                            reptileCourseObject.setTeacher(div.get(beginIndex + 4).childNodes().get(0).toString());
+                            reptileCourseObject.setZc(div.get(beginIndex + 6).childNodes().get(0).toString());
+                        }else if(resCourseLength <= 6){
+                            reptileCourseObject.setNumber(div.get(beginIndex).toString().substring(1));
+                            reptileCourseObject.setName( div.get(beginIndex + 2).toString());
+                            reptileCourseObject.setZc(div.get(beginIndex + 4).childNodes().get(0).toString());
+                        }
+                        reptileCourseObject.setJc(Integer.toString(j));
+                        reptileCourseObject.setXq(Integer.toString( i + 1));
+                        coursesList.add(reptileCourseObject);
+                    }else{   //只有一门课
+                        Integer len = div.size();
+                        ReptileCourse reptileCourseObject = new ReptileCourse();
+                        if(len >= 9 ){
+                            reptileCourseObject.setNumber(div.get(beginIndex).toString().substring(1));
+                            reptileCourseObject.setName( div.get(beginIndex + 2).toString());
+                            reptileCourseObject.setTeacher(div.get(beginIndex + 4).childNodes().get(0).toString());
+                            reptileCourseObject.setZc(div.get(beginIndex + 6).childNodes().get(0).toString());
+                            reptileCourseObject.setRoom(div.get(beginIndex + 8).childNodes().get(0).toString());
+                            reptileCourseObject.setJc(Integer.toString(j));
+                            reptileCourseObject.setXq(Integer.toString( i + 1));
+                            coursesList.add(reptileCourseObject);
+                        }else if(len > 6 && len <= 8){
+                            reptileCourseObject.setNumber(div.get(beginIndex).toString().substring(1));
+                            reptileCourseObject.setName( div.get(beginIndex + 2).toString());
+                            reptileCourseObject.setTeacher(div.get(beginIndex + 4).childNodes().get(0).toString());
+                            reptileCourseObject.setZc(div.get(beginIndex + 6).childNodes().get(0).toString());
+                            reptileCourseObject.setJc(Integer.toString(j));
+                            reptileCourseObject.setXq(Integer.toString( i + 1));
+                            coursesList.add(reptileCourseObject);
+                        }else if(len <= 6 & len > 4){
+                            reptileCourseObject.setNumber(div.get(beginIndex).toString().substring(1));
+                            reptileCourseObject.setName( div.get(beginIndex + 2).toString());
+                            reptileCourseObject.setZc(div.get(beginIndex + 4).childNodes().get(0).toString());
+                            reptileCourseObject.setJc(Integer.toString(j));
+                            reptileCourseObject.setXq(Integer.toString( i + 1));
+                            coursesList.add(reptileCourseObject);
                         }
                     }
+
+
+
+
+
+//                    if(length > 1){
+//                        Integer len = 0;
+//                        while (length > 0){
+//                            ReptileCourse reptileCourseObject = new ReptileCourse();
+//                            reptileCourseObject.setNumber(div.get(len).toString().substring(1));
+//                            String courseName = div.get(len + 2).toString();
+//                            reptileCourseObject.setName(courseName);
+//                            if((len + 6) == div.size()){
+//                                reptileCourseObject.setZc(div.get(len + 4).childNodes().get(0).toString());
+//                            }else{
+//                                reptileCourseObject.setTeacher(div.get(len + 4).childNodes().get(0).toString());
+//                                reptileCourseObject.setZc(div.get(len + 6).childNodes().get(0).toString());
+//                            }
+////                            System.out.println("获取的div" + div.size());
+//                            Boolean  flag = false;
+//                            if(courseName.equals("体育1") || courseName.equals("体育2") || courseName.equals("体育3")
+//                                    || courseName.equals("体育4") || courseName.equals("三年级体育专项")
+//                                   || (div.size() > len + 8 ? div.get(len + 8).toString().equals("---------------------"):false)
+//
+//                            )
+//                            {   //这里加上是否有教室，因为有些不是体育课的也没教室,可能出现空指针
+//
+//                               len += 10;
+//                            }else{
+//                                if(div.size() > len + 8){
+//                                    reptileCourseObject.setRoom(div.get(len + 8).childNodes().get(0).toString());
+//                                }
+//                                len += 12;
+//                            }
+//
+//                            //设置节次,和属于哪一行的tr
+//                            reptileCourseObject.setJc(Integer.toString(j));
+//                            reptileCourseObject.setXq(Integer.toString( i + 1));
+//                            coursesList.add(reptileCourseObject);
+//                            length -= 12;
+//                        }
+//                    }
 
                     //进行id的替换
                     courseId = new String(courseId.replaceFirst("-[0-9]-", "-" + (j + 1) + "-"));

@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class SpringBootProjectsOnePandaApplication {
 
+    @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         System.setProperty("https.protocols", "TLSv1.2");
         SpringApplication.run(SpringBootProjectsOnePandaApplication.class, args);
