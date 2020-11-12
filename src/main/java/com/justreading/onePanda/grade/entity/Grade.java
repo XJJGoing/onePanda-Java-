@@ -1,7 +1,14 @@
 package com.justreading.onePanda.grade.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -11,8 +18,14 @@ import java.io.Serializable;
  * @date 2020 年 02 月 16 日 15:46
  */
 @ApiModel("学生的成绩实体类")
+@Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@TableName("t_grade")
 public class Grade implements Serializable {
     @ApiModelProperty(value = "成绩的id",example = "")
+    @TableId(type = IdType.AUTO)
     private Integer id;
 
     @ApiModelProperty("学科号")

@@ -13,7 +13,15 @@ public enum  CONSTANT {
         this.defaultTerm = defaultTerm;
     }
 
-    public String getDefaultTerm() {
+    public  String getDefaultTerm() {
         return defaultTerm;
+    }
+
+    public static String getDefaultTermForLogin(){
+       String res = "";
+       for(CONSTANT element : values()){
+           res = element.getDefaultTerm();
+       }
+       return res;
     }
 }

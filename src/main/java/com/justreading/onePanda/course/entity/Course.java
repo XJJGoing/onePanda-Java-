@@ -1,8 +1,15 @@
 package com.justreading.onePanda.course.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -12,9 +19,15 @@ import java.io.Serializable;
  * @date 2020 年 02 月 16 日 14:10
  */
 @ApiModel("学生课表的实体")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@TableName("t_course")
 public class Course implements Serializable {
 
     @ApiModelProperty(value = "课程的id",example = "1")
+    @TableId(type = IdType.AUTO)
     private Integer id;
 
     @ApiModelProperty("课程名称")

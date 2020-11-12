@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionManager;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
@@ -27,6 +29,7 @@ public class MyDruidConfig {
     public DataSource dataSource(){
         return new DruidDataSource();
     }
+    
 
     /**
      * 配置访问druid数据源的servlet

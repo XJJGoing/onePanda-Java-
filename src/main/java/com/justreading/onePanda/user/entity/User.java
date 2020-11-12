@@ -1,7 +1,11 @@
 package com.justreading.onePanda.user.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -11,6 +15,10 @@ import java.io.Serializable;
  * @date 2020 年 02 月 15 日 12:11
  */
 @ApiModel("用户的实体类")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@TableName("t_user")
 public class User implements Serializable {
     @ApiModelProperty(value = "用户的id",example = "1")
     private Integer id;

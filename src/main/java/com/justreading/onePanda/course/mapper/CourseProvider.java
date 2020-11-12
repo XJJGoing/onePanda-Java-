@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class CourseProvider {
 
-    public String deleteCourseBatch(List<Integer> list){
+    public String deleteCourseBatch(@Param("list") List<Integer> list){
         StringBuilder ids = new StringBuilder();
         for (int i = 0; i < list.size() ; i++) {
             if(i == list.size() - 1){

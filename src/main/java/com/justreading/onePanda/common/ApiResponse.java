@@ -2,6 +2,10 @@ package com.justreading.onePanda.common;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author LYJ
@@ -9,6 +13,10 @@ import io.swagger.annotations.ApiModelProperty;
  * @date 2020 年 02 月 15 日 12:14
  */
 @ApiModel("统一返回规则")
+@Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ApiResponse<T> {
    @ApiModelProperty(value = "返回的状态码",required = true)
    private Integer code;

@@ -5,6 +5,7 @@ import com.justreading.onePanda.aop.annotation.MyLog;
 import com.justreading.onePanda.common.ApiResponse;
 import com.justreading.onePanda.common.MyPageInfo;
 import com.justreading.onePanda.common.StudentMethod;
+import com.justreading.onePanda.request.UserRequest;
 import com.justreading.onePanda.user.entity.User;
 import com.justreading.onePanda.user.service.UserService;
 import io.swagger.annotations.Api;
@@ -114,5 +115,11 @@ public class UserController {
             apiResponse.setCode(400);
         }
         return apiResponse;
+    }
+
+    @ApiOperation("改造后的登录接口")
+    @PostMapping("/exchangeLogin")
+    public ApiResponse<Map<String, Object>> exchangeLogin(@RequestBody(required = true) UserRequest request){
+         return userService.exchangeLoginService(request);
     }
 }

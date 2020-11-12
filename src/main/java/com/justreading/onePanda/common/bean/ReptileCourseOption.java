@@ -2,6 +2,7 @@ package com.justreading.onePanda.common.bean;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -11,6 +12,10 @@ import java.io.Serializable;
  * @date 2020 年 02 月 15 日 14:06
  */
 @ApiModel("学生查询课表的条件")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class ReptileCourseOption implements Serializable {
 
     @ApiModelProperty("不传也行")

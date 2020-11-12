@@ -2,6 +2,7 @@ package com.justreading.onePanda.common.bean;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -11,6 +12,10 @@ import java.io.Serializable;
  * @date 2020 年 02 月 15 日 14:07
  */
 @ApiModel("学生查询成绩需的条件")
+@Builder
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ReptileGradeOption implements Serializable {
     @ApiModelProperty(value = "学期",required = true)
     private String kksj;
@@ -23,9 +28,6 @@ public class ReptileGradeOption implements Serializable {
 
     @ApiModelProperty(value = "学生分数，默认all")
     private  String xsfs = "all";
-
-    public ReptileGradeOption() {
-    }
 
     public String getKksj() {
         return kksj;

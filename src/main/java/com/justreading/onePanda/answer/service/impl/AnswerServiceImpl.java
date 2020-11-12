@@ -1,6 +1,7 @@
 package com.justreading.onePanda.answer.service.impl;
 
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.justreading.onePanda.answer.entity.Answer;
 import com.justreading.onePanda.answer.mapper.AnswerMapper;
 import com.justreading.onePanda.answer.service.AnswerService;

@@ -114,7 +114,7 @@ public class ReptileSchedule {
                             gradeService.insertGrade(grade);
                         }
                     }
-                    studentMethod.studentLogout(cookie);
+//                    studentMethod.studentLogout(cookie);
                 }
             }
         }
@@ -124,7 +124,7 @@ public class ReptileSchedule {
     /**
      * 定时更新课表,对查到的用户的学号和密码进行去重处理
      */
-    @Scheduled(cron = "0 0 23 0/1 * *")
+//    @Scheduled(cron = "0 0 23 0/1 * *")
     public void getCourse(){
         List<User> allUser = userService.findAllUserUsernameAndPassword();
         Map<String, List<User>> collect = allUser.stream().collect(Collectors.groupingBy(User::getUsername));
@@ -189,7 +189,7 @@ public class ReptileSchedule {
                             courseService.insertCourse(course);
                         }
                     }
-                    studentMethod.studentLogout(cookie);
+//                    studentMethod.studentLogout(cookie);
                 }
             }
         }

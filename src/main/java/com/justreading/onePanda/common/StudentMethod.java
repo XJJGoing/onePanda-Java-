@@ -6,6 +6,9 @@ import com.justreading.onePanda.common.bean.ReptileCourseOption;
 import com.justreading.onePanda.common.bean.ReptileGrade;
 import com.justreading.onePanda.common.bean.ReptileGradeOption;
 import com.justreading.onePanda.course.entity.Course;
+import com.justreading.onePanda.rules.Dto.StudentCourseDto;
+import com.justreading.onePanda.rules.Dto.StudentGradeDto;
+import com.justreading.onePanda.rules.Dto.StudentInfoDto;
 import com.justreading.onePanda.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -43,7 +46,7 @@ public class StudentMethod {
      */
     @MyLog("学生登录教务系统")
     public String studentLogin(User user){
-        String url = URL.STUDENT_LOGIN.getUrl() +"?"+ "USERNAME=" + user.getUsername() +"&PASSWORD="+ user.getPassword();
+        String url = URL.STUDENT_LOGIN.getUrl() +"?"+ "USERNAME=" + user.getUsername()+"&PASSWORD="+ user.getPassword();
         StringBuffer finalCookie = new StringBuffer();
 
 
@@ -57,9 +60,7 @@ public class StudentMethod {
             responseEntity = restTemplate.exchange(url, HttpMethod.POST ,entity, String.class);
             responseHeader = responseEntity.getHeaders();
             if(responseHeader.get("Location") != null ){
-                if(ObjectUtils.isEmpty(responseHeader.get("Set-Cookie"))){
-
-                }else{
+                if(!ObjectUtils.isEmpty(responseHeader.get("Set-Cookie"))){
                     List<String> cookie1 = responseHeader.get("Set-Cookie");
                     for (int i = 0; i < cookie1.size(); i++) {
                         String s = cookie1.get(i);
@@ -123,6 +124,7 @@ public class StudentMethod {
         apiResponse.setCode(200);
         return apiResponse;
     }
+
 
     /**
      *  获取学生的成绩信息
@@ -459,5 +461,80 @@ public class StudentMethod {
         headers.add("Cookie",cookie);
         HttpEntity httpEntity = new HttpEntity(headers);
         ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
+    }
+
+
+    public ApiResponse<StudentInfoDto> getStudentInfoDto(String cookie){
+        String url = URL.STUDENT_INFO.getUrl();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-type",MediaType.APPLICATION_FORM_URLENCODED.toString());
+        headers.add("Cookie",cookie);
+        HttpEntity httpEntity = new HttpEntity(headers);
+        ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
+        if(!ObjectUtils.isEmpty(responseEntity.getBody())){
+            Document $ = Jsoup.parse(responseEntity.getBody());
+            Elements content = $.select("#xjkpTable");
+            String college = content.get(0).childNodes().get(1).childNodes().get(4).childNodes().get(1).childNodes().get(0).toString().substring(3);
+            String studentMajorName = content.get(0).childNodes().get(1).childNodes().get(4).childNodes().get(3).childNodes().get(0).toString().substring(3);
+            String trueName = content.get(0).childNodes().get(1).childNodes().get(6).childNodes().get(3).childNodes().get(0).toString().substring(6);
+            StudentInfoDto studentInfoDto = StudentInfoDto.builder()
+                    .college(college)
+                    .studentMajorName(studentMajorName)
+                    .trueName(trueName)
+                    .build();
+            return new ApiResponse<StudentInfoDto>(200,"查询学生个人信息成功成功",studentInfoDto);
+        }
+        return null;
+    }
+
+    //bz terms weeks courses
+    public ApiResponse<StudentCourseDto> getStudentCourseDto(String cookie, ReptileCourseOption reptileCourseOption){
+        ApiResponse<Map<String, Object>> studentCourse = getStudentCourse(cookie, reptileCourseOption);
+        Map<String, Object> map = studentCourse.getData();
+        if(!ObjectUtils.isEmpty(map)){
+            String bz = String.valueOf(map.get("bz"));
+            List<String> terms = (List<String>)map.get("terms");
+            List<ReptileCourse> courses = (List<ReptileCourse>)map.get("courses");
+            List<String> weeks = (List<String>)map.get("weeks");
+            StudentCourseDto studentCourseDto = StudentCourseDto.builder()
+                    .bz(bz)
+                    .terms(terms)
+                    .courses(courses)
+                    .weeks(weeks)
+                    .build();
+            return new ApiResponse<StudentCourseDto>(200,"查询成绩成功",studentCourseDto);
+        }else{
+            return null;
+        }
+    }
+
+    //如果其中一种方式获取不到则使用另外的方式
+    public StudentGradeDto getStudentGradeDtoByTowMethod(String cookie, ReptileGradeOption reptileGradeOption){
+        StudentGradeDto studentGradDto = getStudentGradDto(cookie, reptileGradeOption);
+        return ObjectUtils.isEmpty(studentGradDto) ? getStudentGradDtoByOther(cookie, reptileGradeOption) : studentGradDto;
+    }
+
+    //正常途径获取
+    private StudentGradeDto  getStudentGradDto(String cookie, ReptileGradeOption reptileGradeOption){
+        ApiResponse<List<ReptileGrade>> apiResponse = getStudentGrade(cookie, reptileGradeOption);
+        List<ReptileGrade> studentGrade = apiResponse.getData();
+        if(ObjectUtils.isEmpty(studentGrade)){
+            return null;
+        }
+        return StudentGradeDto.builder()
+                .grades(studentGrade)
+                .build();
+    }
+
+    //通过成绩替代获取成绩
+    private StudentGradeDto  getStudentGradDtoByOther(String cookie, ReptileGradeOption reptileGradeOption){
+        ApiResponse<List<ReptileGrade>> apiResponse = getStudentGradeByOther(cookie, reptileGradeOption);
+        List<ReptileGrade> studentGrade = apiResponse.getData();
+        if(ObjectUtils.isEmpty(studentGrade)){
+            return null;
+        }
+        return StudentGradeDto.builder()
+                .grades(studentGrade)
+                .build();
     }
 }

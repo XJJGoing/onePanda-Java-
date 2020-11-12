@@ -1,5 +1,6 @@
 package com.justreading.onePanda.answer.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.justreading.onePanda.answer.entity.Answer;
 import org.apache.ibatis.annotations.*;
 
