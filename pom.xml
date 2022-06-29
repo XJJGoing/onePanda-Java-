@@ -24,7 +24,7 @@
         <jsoup.version>1.12.1</jsoup.version>
         <druid.version>1.1.20</druid.version>
         <pagehelper.version>1.2.12</pagehelper.version>
-        <poi.version>4.1.0</poi.version>
+        <poi.version>4.1.1</poi.version>
         <poi-ooxml.verison>4.1.0</poi-ooxml.verison>
         <mybaitsPlus.version>3.3.1.tmp</mybaitsPlus.version>
     </properties>
